@@ -1,0 +1,636 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Simulador Las Moreras</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap">
+<style>
+/* Layout: una columna estrecha y legible, barra de fases arriba, tarjetas solo para lo que se toca. Paleta de bistró: verde botella y latón sobre blanco mármol. */
+:root{
+  --bg:#f5f6f3; --surface:#ffffff; --ink:#1d2622; --muted:#5a6660; --line:#d9ded9;
+  --accent:#1e5b4a; --accent-ink:#ffffff; --accent-soft:#e1eee8; --brass:#b5832a; --brass-soft:#f6ecd8;
+  --ok:#2c7a3f; --ok-soft:#e3f2e6; --bad:#b3362c; --bad-soft:#f8e3e0; --warn:#8a5a00; --warn-soft:#fbf0d6;
+  --font-body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --font-display:"Bricolage Grotesque", "Atkinson Hyperlegible", system-ui, sans-serif;
+  --r:12px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121815; --surface:#1b2420; --ink:#e9eee9; --muted:#a3b0a9; --line:#2f3b35;
+  --accent:#5fbf9f; --accent-ink:#0d1a15; --accent-soft:#1f3a31; --brass:#e0b45a; --brass-soft:#3a2f18;
+  --ok:#6fcf86; --ok-soft:#1d3524; --bad:#f08a7e; --bad-soft:#3d211e; --warn:#f2c46a; --warn-soft:#3a2f17; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121815; --surface:#1b2420; --ink:#e9eee9; --muted:#a3b0a9; --line:#2f3b35;
+  --accent:#5fbf9f; --accent-ink:#0d1a15; --accent-soft:#1f3a31; --brass:#e0b45a; --brass-soft:#3a2f18;
+  --ok:#6fcf86; --ok-soft:#1d3524; --bad:#f08a7e; --bad-soft:#3d211e; --warn:#f2c46a; --warn-soft:#3a2f17; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:18px;line-height:1.5}
+.wrap{max-width:760px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 64px}
+h1,h2,h3{font-family:var(--font-display);line-height:1.15;text-wrap:balance;margin:0}
+h1{font-size:1.9rem;font-weight:800}
+h2{font-size:1.45rem;font-weight:800}
+h3{font-size:1.1rem;font-weight:600}
+p{margin:0}
+.stack{display:flex;flex-direction:column;gap:16px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.muted{color:var(--muted)}
+.eyebrow{font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--brass);font-weight:700}
+header.top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;padding-block:8px 4px}
+.brand small{display:block;font-size:.85rem;color:var(--muted)}
+.mode{display:flex;border:2px solid var(--accent);border-radius:999px;overflow:hidden}
+.mode button{border:0;background:transparent;color:var(--accent);padding:8px 16px;font:inherit;font-weight:700;cursor:pointer;min-height:44px}
+.mode button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+nav.phases{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin-block:12px 20px}
+nav.phases button{border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:8px 4px;font:inherit;font-size:.82rem;cursor:pointer;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;line-height:1.1}
+nav.phases button b{font-family:var(--font-display);font-size:1.15rem}
+nav.phases button[aria-current="step"]{border-color:var(--accent);background:var(--accent-soft)}
+nav.phases button.done b::after{content:" ✓";color:var(--ok)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:2px solid var(--accent);background:var(--accent);color:var(--accent-ink);border-radius:10px;padding:12px 20px;font:inherit;font-weight:700;cursor:pointer;min-height:52px;text-align:center}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.small{min-height:40px;padding:6px 12px;font-size:.95rem}
+.btn.danger{background:transparent;border-color:var(--bad);color:var(--bad)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,label.check:focus-within{outline:3px solid var(--brass);outline-offset:2px}
+.next{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:8px}
+/* checklists */
+.checklist{display:flex;flex-direction:column;gap:8px;list-style:none;margin:0;padding:0}
+label.check{display:flex;gap:14px;align-items:flex-start;padding:14px;border:2px solid var(--line);border-radius:10px;background:var(--surface);cursor:pointer}
+label.check input{width:28px;height:28px;flex:none;accent-color:var(--accent);margin:0}
+label.check:has(input:checked){border-color:var(--ok);background:var(--ok-soft)}
+.progress{height:10px;background:var(--line);border-radius:999px;overflow:hidden}
+.progress span{display:block;height:100%;background:var(--ok);transition:width .25s}
+@media (prefers-reduced-motion: reduce){.progress span{transition:none}}
+/* carta */
+.menu-group{display:flex;flex-direction:column;gap:6px}
+.item{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.item .price{font-variant-numeric:tabular-nums;font-weight:700}
+.tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
+.tag{font-size:.75rem;padding:2px 8px;border-radius:999px;background:var(--warn-soft);color:var(--warn);font-weight:700}
+.tag.none{background:var(--ok-soft);color:var(--ok)}
+.add{width:48px;height:48px;border-radius:50%;border:2px solid var(--accent);background:var(--accent-soft);color:var(--accent);font-size:1.6rem;font-weight:700;cursor:pointer;line-height:1}
+.order{border:2px dashed var(--brass);background:var(--brass-soft);border-radius:var(--r);padding:16px}
+.order-line{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding-block:6px;border-bottom:1px solid var(--line)}
+.qty{display:flex;gap:6px;align-items:center}
+.qty button{width:36px;height:36px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:1.2rem;cursor:pointer}
+select,input[type=text],input[type=number],input[type=date],textarea{font:inherit;color:var(--ink);background:var(--surface);border:2px solid var(--line);border-radius:10px;padding:10px 12px;min-height:50px;width:100%}
+textarea{min-height:90px;resize:vertical}
+.field{display:flex;flex-direction:column;gap:6px}
+.field>span{font-weight:700}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:8px 14px;font:inherit;cursor:pointer;min-height:44px}
+.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);font-weight:700}
+.note{border-radius:10px;padding:14px 16px;border-left:6px solid var(--brass);background:var(--brass-soft)}
+.note.ok{border-color:var(--ok);background:var(--ok-soft)}
+.note.bad{border-color:var(--bad);background:var(--bad-soft)}
+/* incidencias */
+.quote{font-family:var(--font-display);font-size:1.35rem;font-weight:600;line-height:1.3}
+.options{display:flex;flex-direction:column;gap:10px}
+.option{text-align:left;border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:14px 16px;font:inherit;cursor:pointer;min-height:56px}
+.option.right{border-color:var(--ok);background:var(--ok-soft)}
+.option.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.option:disabled{cursor:default;color:var(--ink)}
+/* resumen */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.stat{border:1px solid var(--line);border-radius:10px;padding:14px;background:var(--surface)}
+.stat b{display:block;font-family:var(--font-display);font-size:1.8rem;font-variant-numeric:tabular-nums}
+/* docente */
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.rubric{display:flex;flex-direction:column;gap:14px}
+.crit{display:flex;flex-direction:column;gap:8px}
+.levels{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.level{border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:10px 6px;font:inherit;font-size:.95rem;font-weight:700;cursor:pointer;min-height:52px}
+.level[aria-pressed="true"][data-v="1"]{border-color:var(--bad);background:var(--bad-soft)}
+.level[aria-pressed="true"][data-v="2"]{border-color:var(--brass);background:var(--brass-soft)}
+.level[aria-pressed="true"][data-v="3"]{border-color:var(--ok);background:var(--ok-soft)}
+.crit details{font-size:.9rem;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:.92rem;background:var(--surface)}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+td.num{font-variant-numeric:tabular-nums;text-align:center}
+.pill{display:inline-block;padding:2px 8px;border-radius:999px;font-weight:700;font-size:.8rem}
+.pill.l1{background:var(--bad-soft);color:var(--bad)}
+.pill.l2{background:var(--brass-soft);color:var(--warn)}
+.pill.l3{background:var(--ok-soft);color:var(--ok)}
+.student-list{display:flex;flex-direction:column;gap:6px;list-style:none;padding:0;margin:0}
+.student-list li{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:12px 20px;border-radius:10px;font-weight:700;z-index:20;max-width:calc(100% - 32px)}
+.confirm-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+@media (max-width:520px){
+  body{font-size:17px}
+  nav.phases{grid-template-columns:repeat(3,minmax(0,1fr))}
+  h1{font-size:1.55rem}
+}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="eyebrow">HOTR0208 · Bistró-cafetería</div>
+      <h1>Las Moreras</h1>
+      <small>Simulación del servicio de mediodía</small>
+    </div>
+    <div class="mode" id="modeSwitch" hidden>
+      <button type="button" id="modeStudent" aria-pressed="true">Alumno</button>
+      <button type="button" id="modeTeacher" aria-pressed="false">Docente</button>
+    </div>
+  </header>
+  <main id="app"></main>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+"use strict";
+/* ---------- Contenido ---------- */
+const CARTA = {
+  "Bebidas": [
+    {id:"solo", n:"Café solo", p:1.30, a:[]},
+    {id:"cortado", n:"Cortado", p:1.40, a:["Lácteos"]},
+    {id:"conleche", n:"Café con leche", p:1.60, a:["Lácteos"]},
+    {id:"infusion", n:"Infusión", p:1.50, a:[]},
+    {id:"agua", n:"Agua mineral", p:1.50, a:[]},
+    {id:"refresco", n:"Refresco", p:2.20, a:[]},
+    {id:"cana", n:"Caña de cerveza", p:2.00, a:["Gluten"]},
+    {id:"sinalcohol", n:"Cerveza sin alcohol", p:2.20, a:["Gluten"]},
+    {id:"zumo", n:"Zumo de naranja natural", p:2.80, a:[]},
+    {id:"batido", n:"Batido de plátano y fresa", p:3.20, a:["Lácteos"]}
+  ],
+  "Comidas": [
+    {id:"tostada", n:"Tostada con tomate y aceite", p:2.50, a:["Gluten"]},
+    {id:"tortilla", n:"Pincho de tortilla de patatas", p:3.00, a:["Huevo"]},
+    {id:"bizcocho", n:"Bizcocho casero", p:3.00, a:["Gluten","Huevo","Lácteos"]},
+    {id:"fruta", n:"Fruta de temporada", p:2.50, a:[]},
+    {id:"sandwich", n:"Sándwich mixto", p:4.00, a:["Gluten","Lácteos"]},
+    {id:"ensalada", n:"Ensalada mixta", p:6.50, a:["Huevo","Pescado"]},
+    {id:"quesos", n:"Tabla de quesos con nueces", p:8.00, a:["Lácteos","Frutos de cáscara"]}
+  ]
+};
+const ITEMS = Object.values(CARTA).flat();
+const ALERGENOS = ["Gluten","Lácteos","Huevo","Pescado","Frutos de cáscara"];
+
+const FASE_A = [
+  {g:"Higiene personal", items:["Llevo el uniforme limpio y completo.","Me he lavado las manos.","Llevo el pelo recogido y no llevo anillos, pulseras ni reloj."]},
+  {g:"Puesto de trabajo y menaje", items:["He desinfectado la barra y las mesas con un producto autorizado.","He revisado que la vajilla, la cristalería y la cubertería estén limpias, secas y sin desperfectos.","Cojo las copas por el pie o la base y los cubiertos por el mango.","He comprobado que la cafetera está encendida y purgada."]},
+  {g:"Montaje de sala y barra", items:["He montado las 3 mesas con mantel o individual, cubiertos, servilleta y copa.","Las sillas están colocadas y limpias.","Hay cartas limpias y comandas preparadas.","He repuesto en barra el azúcar, los removedores, las servilletas y la fruta.","Tengo hielo limpio, la bandeja antideslizante preparada y un paño limpio a mano."]}
+];
+const FASE_B = [
+  ["Acogida","Saludo con cordialidad y miro al cliente a los ojos. En sala lo acompaño a la mesa y en barra lo atiendo enseguida."],
+  ["Comanda","Anoto lo que pide y cómo lo quiere: punto del café, temperatura de la leche, hielo sí o no."],
+  ["Alérgenos","Pregunto si alguien tiene alguna alergia o intolerancia. Si tengo dudas, consulto y no improviso."],
+  ["Confirmación","Repito la comanda en voz alta para comprobar que está bien."],
+  ["Elaboración","Preparo las bebidas y comidas siguiendo la técnica de cada producto."],
+  ["Transporte","Llevo la bandeja con lo más pesado en el centro y sin sobrecargarla."],
+  ["Servicio","Sirvo sin invadir el espacio del cliente y nombro cada producto al dejarlo."],
+  ["Retirada","Retiro el servicio en orden y sin apilar platos delante del cliente."]
+];
+const FASE_D = ["Me he despedido del cliente con cordialidad.","He recogido los restos de las mesas y la barra.","He llevado la vajilla, la cristalería y la cubertería a la zona de lavado.","He limpiado y desinfectado las mesas, las sillas y la barra con productos autorizados.","He limpiado la cafetera, el tirador de cerveza y la batidora.","He separado los residuos en sus contenedores.","He repuesto la barra y la sala para el siguiente turno.","He dejado el puesto ordenado."];
+
+const INCIDENCIAS = [
+  {t:"Consulta de alérgenos", q:"Soy celíaco, ¿qué puedo tomar?",
+   ok:"Consulto la información de alérgenos y le recomiendo productos sin gluten de la carta, como el café, el zumo o la fruta.",
+   bad:["Le digo que la tostada no lleva casi gluten, que no pasa nada.","Le digo que no sé y que elija él mismo de la carta."],
+   why:"Con los alérgenos nunca se improvisa. Hay que consultar la información y ofrecer opciones seguras."},
+  {t:"Copa con marcas", q:"Esta copa tiene marcas de agua.",
+   ok:"Me disculpo en una frase, retiro la copa al momento y traigo otra limpia, cogida por el pie.",
+   bad:["La limpio con el paño delante del cliente y se la devuelvo.","Le explico que viene así del lavavajillas y que está limpia."],
+   why:"La pieza defectuosa se retira y se cambia por otra en perfecto estado, sin discutir y sin limpiarla delante del cliente."},
+  {t:"Derrame en la mesa", q:"¡Uy, se me ha caído el refresco!",
+   ok:"Actúo rápido y con discreción: aparto sus cosas, seco la mesa y le repongo el refresco.",
+   bad:["Le doy unas servilletas para que lo seque él.","Espero a que termine de comer para limpiarlo todo junto."],
+   why:"Un derrame se atiende enseguida, protegiendo las pertenencias del cliente y reponiendo lo que se ha perdido."},
+  {t:"Comanda equivocada", q:"Yo había pedido un cortado, no un café solo.",
+   ok:"Me disculpo, retiro el café, preparo el cortado y repaso la comanda para que no vuelva a pasar.",
+   bad:["Le añado un poco de leche fría al café solo.","Le digo que en la comanda pone café solo."],
+   why:"Si el error es nuestro, se reconoce, se corrige con el producto correcto y se revisa la comanda."},
+  {t:"Petición especial", q:"¿Tenéis leche sin lactosa?",
+   ok:"Compruebo si hay en barra. Si no hay, se lo digo con amabilidad y le ofrezco otra opción de la carta.",
+   bad:["Le digo que sí y le pongo leche normal, que no se nota.","Le digo que no y me voy sin ofrecer nada."],
+   why:"Nunca se da un producto distinto del que se ha pedido. Si no lo tenemos, se ofrece una alternativa."},
+  {t:"Cerveza con mucha espuma", q:"Me has puesto media caña de espuma.",
+   ok:"Me disculpo y vuelvo a tirar la cerveza con la inclinación correcta y la espuma justa.",
+   bad:["Le quito la espuma con una cuchara y se la devuelvo.","Le explico que la espuma es buena para la cerveza."],
+   why:"Se repite el tirado con la técnica correcta: vaso inclinado, enderezar poco a poco y unos dos dedos de espuma."}
+];
+
+const CRITERIOS = [
+  {k:"higiene", n:"Higiene y manipulación", d:["Omite normas básicas de higiene o manipula mal el menaje, los alimentos o las superficies.","Aplica las normas de higiene y manipulación con alguna indicación puntual.","Mantiene siempre la higiene, la manipulación segura y el orden."]},
+  {k:"servicio", n:"Preparación y servicio", d:["Tiene dificultades con el montaje, la bandeja o la elaboración.","Monta, prepara y sirve correctamente y en tiempos aceptables.","Trabaja con fluidez y precisión, con buena postura y manejo seguro de la bandeja."]},
+  {k:"atencion", n:"Atención y comunicación", d:["Trato distante, poca escucha o responde sobre alérgenos o comandas sin confirmar.","Trato correcto, escucha activa y consulta las dudas de alérgenos o comanda.","Trato cercano y profesional, confirma las comandas y resuelve las incidencias con calma."]},
+  {k:"postservicio", n:"Postservicio y orden", d:["Deja la barra, la sala o los residuos sin terminar o desordenados.","Recoge, limpia y repone el puesto siguiendo las pautas.","Deja barra y sala limpias, desinfectadas y listas para el siguiente turno."]}
+];
+const NIVELES = ["","En proceso","Adecuado","Destacado"];
+
+/* ---------- Utilidades ---------- */
+const $ = (s, r=document) => r.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const eur = n => n.toFixed(2).replace(".", ",") + " €";
+const today = () => new Date().toISOString().slice(0,10);
+const fmtDate = s => { const [y,m,d] = String(s).split("-"); return d ? `${d}/${m}/${y}` : s; };
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.hidden=false; clearTimeout(toast.h); toast.h=setTimeout(()=>t.hidden=true,2600); }
+function load(key, fallback){ try{ const v=localStorage.getItem(key); return v?JSON.parse(v):fallback; }catch(e){ return fallback; } }
+function save(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
+function shuffle(a){ const b=a.slice(); for(let i=b.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [b[i],b[j]]=[b[j],b[i]]; } return b; }
+
+/* ---------- Estado del alumno (solo en su navegador) ---------- */
+const FRESH = () => ({name:"", step:0, a:[], b:[], d:[], orders:[], inc:{}, incOrder:shuffle(INCIDENCIAS.map((_,i)=>i)), incPos:0});
+let S = Object.assign(FRESH(), load("mirador-alumno", {}));
+const persist = () => save("mirador-alumno", S);
+let draft = {mesa:"Mesa 1", lines:{}, nota:"", stage:"menu", asked:null, allergies:[]};
+
+let mode = "alumno";
+let teacher = {tab:"evaluar", students:[], evals:[], filter:"", form:null, confirmDel:null};
+let store = null; // db o almacenamiento local
+let downloads = null;
+
+const STEPS = [["Inicio","·"],["Preparar","A"],["Servir","B"],["Incidencias","C"],["Cerrar","D"],["Resumen","✓"]];
+
+function render(){
+  $("#modeStudent").setAttribute("aria-pressed", mode==="alumno");
+  $("#modeTeacher").setAttribute("aria-pressed", mode==="docente");
+  $("#app").innerHTML = mode==="alumno" ? renderStudent() : renderTeacher();
+}
+
+/* ---------- Modo alumno ---------- */
+function phaseDone(i){
+  if(i===0) return !!S.name;
+  if(i===1) return S.a.length===FASE_A.reduce((n,g)=>n+g.items.length,0);
+  if(i===2) return S.orders.length>0 && S.b.length===FASE_B.length;
+  if(i===3) return Object.keys(S.inc).length>=3;
+  if(i===4) return S.d.length===FASE_D.length;
+  return false;
+}
+function renderStudent(){
+  const nav = `<nav class="phases" aria-label="Fases de la simulación">${STEPS.map(([n,l],i)=>`<button type="button" data-go="${i}" ${S.step===i?'aria-current="step"':''} class="${phaseDone(i)?'done':''}"><b>${l}</b>${n}</button>`).join("")}</nav>`;
+  const views = [vInicio, vFaseA, vFaseB, vFaseC, vFaseD, vResumen];
+  return nav + `<section class="stack">${views[S.step]()}</section>`;
+}
+function nextBar(prev, next, label){
+  return `<div class="next">${prev!==null?`<button type="button" class="btn ghost" data-go="${prev}">Volver</button>`:'<span></span>'}${next!==null?`<button type="button" class="btn" data-go="${next}">${label||"Siguiente fase"}</button>`:''}</div>`;
+}
+function vInicio(){
+  return `<div class="card stack">
+    <h2>Bienvenida al turno de mediodía</h2>
+    <p>Hoy trabajas como ayudante de camarero y de bar en Las Moreras: una barra y tres mesas de dos personas. Vas a recorrer las cuatro fases del servicio a tu ritmo, sin prisas.</p>
+    <ol class="stack" style="padding-left:1.2em;margin:0">
+      <li><b>Preparar.</b> Higiene, menaje y montaje de sala y barra.</li>
+      <li><b>Servir.</b> Acoger al cliente, tomar la comanda y servir.</li>
+      <li><b>Incidencias.</b> Qué hacer cuando algo no sale como estaba previsto.</li>
+      <li><b>Cerrar.</b> Recoger, limpiar y dejarlo listo para el siguiente turno.</li>
+    </ol>
+    <label class="field"><span>¿Cómo te llamas?</span><input type="text" id="stuName" autocomplete="given-name" value="${esc(S.name)}" placeholder="Tu nombre"></label>
+    <p class="muted">Lo que marques se guarda solo en este móvil u ordenador. Al final verás un resumen para enseñárselo a tu docente.</p>
+  </div>${nextBar(null,1,"Empezar")}`;
+}
+function checklist(list, sel, key){
+  return `<ul class="checklist">${list.map((t,i)=>`<li><label class="check"><input type="checkbox" data-check="${key}" value="${esc(t)}" ${sel.includes(t)?'checked':''}><span>${esc(t)}</span></label></li>`).join("")}</ul>`;
+}
+function bar(n,total){ return `<div class="row" style="justify-content:space-between"><span class="muted">${n} de ${total} hechos</span></div><div class="progress" aria-hidden="true"><span style="width:${total?Math.round(n/total*100):0}%"></span></div>`; }
+function vFaseA(){
+  const total = FASE_A.reduce((n,g)=>n+g.items.length,0);
+  return `<div class="stack"><div><div class="eyebrow">Fase A</div><h2>Preservicio, higiene y preparación</h2></div>
+    <p>Marca cada punto cuando lo hayas hecho de verdad en el aula-taller.</p>${bar(S.a.length,total)}
+    ${FASE_A.map(g=>`<div class="stack" style="gap:8px"><h3>${g.g}</h3>${checklist(g.items,S.a,"a")}</div>`).join("")}
+  </div>${nextBar(0,2)}`;
+}
+function allergenTags(a){ return a.length? a.map(x=>`<span class="tag">${x}</span>`).join("") : `<span class="tag none">Sin alérgenos</span>`; }
+function vFaseB(){
+  const lines = Object.entries(draft.lines).filter(([,q])=>q>0);
+  const total = lines.reduce((s,[id,q])=>s+ITEMS.find(i=>i.id===id).p*q,0);
+  let orderBox;
+  if(draft.stage==="menu"){
+    orderBox = `<div class="order stack" id="orderBox">
+      <div class="row" style="justify-content:space-between"><h3>Comanda</h3>
+        <select id="mesa" aria-label="Mesa" style="width:auto">${["Mesa 1","Mesa 2","Mesa 3","Barra"].map(m=>`<option ${draft.mesa===m?'selected':''}>${m}</option>`).join("")}</select></div>
+      ${lines.length? lines.map(([id,q])=>{const it=ITEMS.find(i=>i.id===id); return `<div class="order-line"><div class="qty"><button type="button" data-qty="${id}" data-d="-1" aria-label="Quitar uno">−</button><b>${q}</b><button type="button" data-qty="${id}" data-d="1" aria-label="Añadir uno">+</button></div><div>${esc(it.n)}<div class="tags">${it.a.map(x=>`<span class="tag">${x}</span>`).join("")}</div></div><span class="price">${eur(it.p*q)}</span></div>`}).join("") : `<p class="muted">Toca + en la carta para añadir lo que pide el cliente.</p>`}
+      <label class="field"><span>¿Cómo lo quiere?</span><input type="text" id="nota" value="${esc(draft.nota)}" placeholder="Ej.: café muy caliente, zumo sin hielo"></label>
+      <div class="row" style="justify-content:space-between"><b>Total: ${eur(total)}</b><button type="button" class="btn" id="toAllergens" ${lines.length?'':'disabled'}>Confirmar comanda</button></div>
+    </div>`;
+  } else if(draft.stage==="ask"){
+    orderBox = `<div class="order stack" id="orderBox"><h3>Antes de confirmar</h3>
+      <p class="quote">¿Has preguntado si alguien tiene alergias o intolerancias?</p>
+      <div class="options">
+        <button type="button" class="option" data-ask="no-alergias">Sí, he preguntado y nadie tiene alergias.</button>
+        <button type="button" class="option" data-ask="alergias">Sí, he preguntado y hay alguna alergia.</button>
+        <button type="button" class="option" data-ask="no">No he preguntado.</button>
+      </div></div>`;
+  } else if(draft.stage==="which"){
+    orderBox = `<div class="order stack" id="orderBox"><h3>¿Qué alergia tiene el cliente?</h3>
+      <div class="chips">${ALERGENOS.map(a=>`<button type="button" class="chip" data-allergy="${a}" aria-pressed="${draft.allergies.includes(a)}">${a}</button>`).join("")}</div>
+      <button type="button" class="btn" id="checkAllergy" ${draft.allergies.length?'':'disabled'}>Revisar la comanda</button></div>`;
+  } else {
+    const risky = lines.map(([id])=>ITEMS.find(i=>i.id===id)).filter(it=>it.a.some(a=>draft.allergies.includes(a)));
+    let msg;
+    if(draft.asked==="no") msg = `<div class="note bad"><b>Pregunta siempre por las alergias antes de confirmar.</b> Vuelve con el cliente, pregúntale y repite la comanda en voz alta.</div>`;
+    else if(risky.length) msg = `<div class="note bad"><b>¡Cuidado!</b> ${risky.map(r=>esc(r.n)).join(", ")} ${risky.length>1?'llevan':'lleva'} ${draft.allergies.join(", ").toLowerCase()}. Explícaselo al cliente y ofrécele otra opción de la carta.</div>`;
+    else if(draft.asked==="alergias") msg = `<div class="note ok"><b>Bien hecho.</b> Nada de la comanda lleva ${draft.allergies.join(", ").toLowerCase()}. Avisa también en barra o cocina para evitar contaminaciones.</div>`;
+    else msg = `<div class="note ok"><b>Bien hecho.</b> Has preguntado por las alergias. Repite la comanda en voz alta y pásala a barra.</div>`;
+    orderBox = `<div class="order stack" id="orderBox"><h3>Comanda de ${esc(draft.mesa)}</h3>${msg}
+      <div class="row">${risky.length||draft.asked==="no"?`<button type="button" class="btn ghost" id="backToMenu">Corregir la comanda</button>`:''}<button type="button" class="btn" id="sendOrder">Pasar la comanda a barra</button></div></div>`;
+  }
+  const menu = Object.entries(CARTA).map(([g,list])=>`<div class="menu-group"><h3>${g}</h3>${list.map(it=>`<div class="item"><div>${esc(it.n)}<div class="tags">${allergenTags(it.a)}</div></div><span class="price">${eur(it.p)}</span><button type="button" class="add" data-add="${it.id}" aria-label="Añadir ${esc(it.n)}" ${draft.stage!=="menu"?'disabled':''}>+</button></div>`).join("")}</div>`).join("");
+  const done = S.orders.length ? `<div class="note ok">Comandas pasadas a barra: <b>${S.orders.length}</b>. Puedes tomar otra para otra mesa.</div>` : "";
+  return `<div class="stack"><div><div class="eyebrow">Fase B</div><h2>Recepción, comanda y servicio</h2></div>
+    <p>Un compañero hace de cliente. Toma su comanda con la carta de Las Moreras.</p>
+    ${done}${orderBox}
+    <div class="stack" style="gap:12px">${menu}</div>
+    <h3>Pasos del servicio</h3><p class="muted">Marca cada paso cuando lo hayas hecho con el cliente.</p>${bar(S.b.length,FASE_B.length)}
+    <ul class="checklist">${FASE_B.map(([t,d],i)=>`<li><label class="check"><input type="checkbox" data-check="b" value="${esc(t)}" ${S.b.includes(t)?'checked':''}><span><b>${i+1}. ${t}.</b> ${esc(d)}</span></label></li>`).join("")}</ul>
+  </div>${nextBar(1,3)}`;
+}
+function vFaseC(){
+  const answered = Object.keys(S.inc).length;
+  if(S.incPos>=INCIDENCIAS.length){
+    return `<div class="stack"><div><div class="eyebrow">Fase C</div><h2>Resolución de incidencias</h2></div>
+      <div class="note ok">Has visto las ${INCIDENCIAS.length} incidencias. Has acertado ${Object.values(S.inc).filter(Boolean).length} de ${answered}.</div>
+      <button type="button" class="btn ghost" id="incRestart">Repetir las incidencias</button></div>${nextBar(2,4)}`;
+  }
+  const idx = S.incOrder[S.incPos], inc = INCIDENCIAS[idx];
+  const opts = S._opts && S._opts.idx===idx ? S._opts.list : (S._opts={idx, list:shuffle([{t:inc.ok,c:true},...inc.bad.map(t=>({t,c:false}))])}).list;
+  const pick = S._pick;
+  return `<div class="stack"><div><div class="eyebrow">Fase C · Incidencia ${S.incPos+1} de ${INCIDENCIAS.length}</div><h2>${esc(inc.t)}</h2></div>
+    <div class="card stack"><p class="muted">El cliente te dice:</p><p class="quote">«${esc(inc.q)}»</p></div>
+    <p><b>¿Qué haces?</b></p>
+    <div class="options">${opts.map((o,i)=>`<button type="button" class="option ${pick!=null?(o.c?'right':(pick===i?'wrong':'')):''}" data-opt="${i}" ${pick!=null?'disabled':''}>${esc(o.t)}</button>`).join("")}</div>
+    ${pick!=null?`<div class="note ${opts[pick].c?'ok':'bad'}"><b>${opts[pick].c?'Correcto.':'Esta no es la mejor respuesta.'}</b> ${esc(inc.why)}</div>
+    <div class="row"><button type="button" class="btn" id="incNext">${S.incPos+1<INCIDENCIAS.length?'Siguiente incidencia':'Ver resultado'}</button></div>`:''}
+  </div>${nextBar(2,4)}`;
+}
+function vFaseD(){
+  return `<div class="stack"><div><div class="eyebrow">Fase D</div><h2>Postservicio y cierre</h2></div>
+    <p>Marca cada punto cuando lo hayas hecho.</p>${bar(S.d.length,FASE_D.length)}${checklist(FASE_D,S.d,"d")}</div>${nextBar(3,5,"Ver mi resumen")}`;
+}
+function vResumen(){
+  const totalA = FASE_A.reduce((n,g)=>n+g.items.length,0);
+  const asked = S.orders.filter(o=>o.asked!=="no").length;
+  const incOk = Object.values(S.inc).filter(Boolean).length, incN = Object.keys(S.inc).length;
+  return `<div class="stack"><div><div class="eyebrow">Resumen</div><h2>${S.name?esc(S.name)+", este es tu turno":"Tu turno"}</h2></div>
+    <div class="stats">
+      <div class="stat"><span class="muted">Fase A · Preparar</span><b>${S.a.length}/${totalA}</b></div>
+      <div class="stat"><span class="muted">Comandas tomadas</span><b>${S.orders.length}</b></div>
+      <div class="stat"><span class="muted">Preguntaste por alérgenos</span><b>${asked}/${S.orders.length}</b></div>
+      <div class="stat"><span class="muted">Fase B · Pasos</span><b>${S.b.length}/${FASE_B.length}</b></div>
+      <div class="stat"><span class="muted">Incidencias acertadas</span><b>${incOk}/${incN}</b></div>
+      <div class="stat"><span class="muted">Fase D · Cerrar</span><b>${S.d.length}/${FASE_D.length}</b></div>
+    </div>
+    <div class="card stack">
+      <h3>Tu código de resultados</h3>
+      ${S.name?`<p>Cópialo y envíaselo a tu docente por WhatsApp o por correo. Con este código, tus resultados le llegan sin tener que apuntarlos.</p>
+      <textarea id="codeBox" readonly rows="3" style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.85rem;min-height:0">${esc(makeCode())}</textarea>
+      <div class="row"><button type="button" class="btn" id="copyCode">Copiar código</button></div>`
+      :`<div class="note bad">Para generar tu código, escribe tu nombre en <b>Inicio</b>.</div><button type="button" class="btn ghost" data-go="0">Ir a Inicio</button>`}
+    </div>
+    <div id="resetBox" class="confirm-row"><button type="button" class="btn ghost" id="resetAsk">Empezar de nuevo</button></div>
+  </div>${nextBar(4,null)}`;
+}
+
+/* ---------- Código de resultados ---------- */
+function b64urlEncode(str){ const bytes=new TextEncoder().encode(str); let bin=""; bytes.forEach(b=>bin+=String.fromCharCode(b)); return btoa(bin).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""); }
+function b64urlDecode(s){ s=s.replace(/-/g,"+").replace(/_/g,"/"); while(s.length%4) s+="="; const bin=atob(s); return new TextDecoder().decode(Uint8Array.from(bin,c=>c.charCodeAt(0))); }
+function makeCode(){
+  const asked = S.orders.filter(o=>o.asked!=="no").length;
+  const payload = [1, S.name, S.a.length, S.b.length, S.d.length, S.orders.length, asked, Object.values(S.inc).filter(Boolean).length, Object.keys(S.inc).length, today()];
+  return "LM1." + b64urlEncode(JSON.stringify(payload));
+}
+function readCode(text){
+  const m = String(text||"").match(/LM1\.([A-Za-z0-9_-]+)/);
+  if(!m) return null;
+  try{
+    const p = JSON.parse(b64urlDecode(m[1]));
+    if(!Array.isArray(p) || p[0]!==1) return null;
+    const [ , name, a, b, d, orders, asked, incOk, incTotal, fecha] = p;
+    return {name:String(name||"").trim(), a, b, d, orders, asked, incOk, incTotal, fecha};
+  }catch(e){ return null; }
+}
+const norm = s => String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/\s+/g," ").trim();
+function matchStudent(name){
+  const n = norm(name); if(!n) return null;
+  return teacher.students.find(s=>norm(s.nombre)===n)
+      || teacher.students.find(s=>norm(s.nombre).startsWith(n+" ") || n.startsWith(norm(s.nombre)+" "))
+      || null;
+}
+
+/* ---------- Modo docente ---------- */
+function emptyForm(){ return {alumno:"", fecha:today(), higiene:0, servicio:0, atencion:0, postservicio:0, faseA:"", faseB:"", faseD:"", comandas:"", alergenos:"", incOk:"", incTotal:"", notas:""}; }
+function renderTeacher(){
+  if(!teacher.form) teacher.form = emptyForm();
+  const tabs = `<div class="tabs" role="tablist">${[["evaluar","Evaluar"],["resultados","Resultados"],["alumnos","Alumnos"]].map(([k,n])=>`<button type="button" class="chip" role="tab" data-ttab="${k}" aria-pressed="${teacher.tab===k}">${n}</button>`).join("")}</div>`;
+  const note = store.kind==="local" ? `<div class="note">Los resultados se guardan en este navegador. Exporta a Excel de vez en cuando para tener copia.</div>` : "";
+  return `<div class="stack"><div><div class="eyebrow">Modo docente</div><h2>Evaluación con la rúbrica</h2></div>${note}${tabs}${teacher.tab==="evaluar"?tEvaluar():teacher.tab==="resultados"?tResultados():tAlumnos()}</div>`;
+}
+function tEvaluar(){
+  const f = teacher.form;
+  const paste = `<div class="card stack" style="border:2px dashed var(--brass);background:var(--brass-soft)">
+    <h3>Pegar el código del alumno</h3>
+    <p class="muted">Pega el mensaje que te ha enviado. La evaluación se rellena sola y tú solo marcas la rúbrica.</p>
+    <textarea id="pasteCode" rows="2" placeholder="LM1.…" style="min-height:0">${esc(teacher.paste||"")}</textarea>
+    ${teacher.pasteMsg||""}
+    <div class="row"><button type="button" class="btn" id="useCode">Rellenar con el código</button></div>
+  </div>`;
+  if(!teacher.students.length) return paste + `<div class="card stack"><p>También puedes añadir a tu alumnado en la pestaña <b>Alumnos</b>.</p><button type="button" class="btn ghost" data-ttab="alumnos">Añadir alumnos</button></div>`;
+  return paste + `<div class="card stack">
+    <div class="grid2">
+      <label class="field"><span>Alumno o alumna</span><select id="fAlumno"><option value="">Elige…</option>${teacher.students.map(s=>`<option value="${esc(s.id)}" ${f.alumno===s.id?'selected':''}>${esc(s.nombre)}</option>`).join("")}</select></label>
+      <label class="field"><span>Fecha</span><input type="date" id="fFecha" value="${esc(f.fecha)}"></label>
+    </div>
+    <div class="rubric">${CRITERIOS.map(c=>`<div class="crit"><h3>${c.n}</h3>
+      <div class="levels">${[1,2,3].map(v=>`<button type="button" class="level" data-crit="${c.k}" data-v="${v}" aria-pressed="${f[c.k]===v}">${NIVELES[v]}</button>`).join("")}</div>
+      <details><summary>Ver descriptores</summary><ul>${c.d.map((d,i)=>`<li><b>${NIVELES[i+1]}:</b> ${esc(d)}</li>`).join("")}</ul></details></div>`).join("")}</div>
+    <h3>Lo que muestra su resumen</h3>
+    <div class="grid2">
+      <label class="field"><span>Fase A (de 12)</span><input type="number" min="0" max="12" inputmode="numeric" id="fA" value="${esc(f.faseA)}"></label>
+      <label class="field"><span>Fase B, pasos (de 8)</span><input type="number" min="0" max="8" inputmode="numeric" id="fB" value="${esc(f.faseB)}"></label>
+      <label class="field"><span>Fase D (de 8)</span><input type="number" min="0" max="8" inputmode="numeric" id="fD" value="${esc(f.faseD)}"></label>
+      <label class="field"><span>Comandas tomadas</span><input type="number" min="0" inputmode="numeric" id="fCom" value="${esc(f.comandas)}"></label>
+      <label class="field"><span>Incidencias acertadas</span><input type="number" min="0" max="6" inputmode="numeric" id="fIncOk" value="${esc(f.incOk)}"></label>
+      <label class="field"><span>Incidencias vistas</span><input type="number" min="0" max="6" inputmode="numeric" id="fIncTotal" value="${esc(f.incTotal)}"></label>
+    </div>
+    <div class="field"><span>¿Preguntó por los alérgenos?</span><div class="chips">${["Siempre","A veces","Nunca"].map(v=>`<button type="button" class="chip" data-alerg="${v}" aria-pressed="${f.alergenos===v}">${v}</button>`).join("")}</div></div>
+    <label class="field"><span>Observaciones</span><textarea id="fNotas" placeholder="Aciertos, aspectos a mejorar, incidencias…">${esc(f.notas)}</textarea></label>
+    <div class="row"><button type="button" class="btn" id="saveEval">Guardar evaluación</button></div>
+  </div>`;
+}
+function studentName(id){ const s=teacher.students.find(x=>x.id===id); return s?s.nombre:"(alumno borrado)"; }
+function filteredEvals(){ return teacher.evals.filter(e=>!teacher.filter||e.alumno===teacher.filter).slice().sort((a,b)=>(b.fecha||"").localeCompare(a.fecha||"")||(b.creado||0)-(a.creado||0)); }
+function pill(v){ return v?`<span class="pill l${v}">${NIVELES[v]}</span>`:"–"; }
+function tResultados(){
+  const list = filteredEvals();
+  return `<div class="stack">
+    <div class="grid2"><label class="field"><span>Ver resultados de</span><select id="filter"><option value="">Todo el grupo</option>${teacher.students.map(s=>`<option value="${esc(s.id)}" ${teacher.filter===s.id?'selected':''}>${esc(s.nombre)}</option>`).join("")}</select></label></div>
+    <div class="row"><button type="button" class="btn" id="expXlsx" ${list.length?'':'disabled'}>Exportar a Excel</button><button type="button" class="btn ghost" id="expPdf" ${list.length?'':'disabled'}>Exportar a PDF</button></div>
+    ${list.length?`<div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Alumno</th>${CRITERIOS.map(c=>`<th>${c.n}</th>`).join("")}<th>Fase A</th><th>Fase B</th><th>Fase D</th><th>Comandas</th><th>Alérgenos</th><th>Incid.</th><th>Observaciones</th><th></th></tr></thead><tbody>
+      ${list.map(e=>`<tr><td>${fmtDate(e.fecha)}</td><td>${esc(studentName(e.alumno))}</td>${CRITERIOS.map(c=>`<td>${pill(e[c.k])}</td>`).join("")}<td class="num">${esc(e.faseA)||"–"}</td><td class="num">${esc(e.faseB)||"–"}</td><td class="num">${esc(e.faseD)||"–"}</td><td class="num">${esc(e.comandas)||"–"}</td><td>${esc(e.alergenos)||"–"}</td><td class="num">${e.incTotal!==""&&e.incTotal!=null?esc(e.incOk)+"/"+esc(e.incTotal):"–"}</td><td>${esc(e.notas)}</td>
+      <td>${teacher.confirmDel===e.id?`<div class="confirm-row"><button type="button" class="btn small danger" data-del="${e.id}">Borrar</button><button type="button" class="btn small ghost" data-nodel>No</button></div>`:`<button type="button" class="btn small ghost" data-askdel="${e.id}" aria-label="Borrar evaluación">Borrar</button>`}</td></tr>`).join("")}
+    </tbody></table></div>`:`<div class="card"><p>Aún no hay evaluaciones${teacher.filter?" de esta persona":""}. Guarda la primera en la pestaña <b>Evaluar</b>.</p></div>`}
+  </div>`;
+}
+function tAlumnos(){
+  return `<div class="card stack">
+    <div class="row"><input type="text" id="newStudent" placeholder="Nombre y apellido" style="flex:1;min-width:0"><button type="button" class="btn" id="addStudent">Añadir</button></div>
+    ${teacher.students.length?`<ul class="student-list">${teacher.students.map(s=>`<li><span>${esc(s.nombre)} <span class="muted">· ${teacher.evals.filter(e=>e.alumno===s.id).length} evaluaciones</span></span>${teacher.confirmDel===s.id?`<span class="confirm-row"><button type="button" class="btn small danger" data-delstu="${s.id}">Quitar</button><button type="button" class="btn small ghost" data-nodel>No</button></span>`:`<button type="button" class="btn small ghost" data-askdel="${s.id}">Quitar</button>`}</li>`).join("")}</ul>`:`<p class="muted">Todavía no hay nadie en la lista.</p>`}
+    <p class="muted">Quitar a alguien de la lista no borra sus evaluaciones.</p>
+  </div>`;
+}
+
+/* ---------- Almacenamiento del docente ---------- */
+function localStore(){
+  const get = k => load("mirador-"+k, []);
+  const listeners = {};
+  const emit = k => (listeners[k]||[]).forEach(fn=>fn(get(k)));
+  return {kind:"local",
+    watch(k, fn){ (listeners[k]=listeners[k]||[]).push(fn); fn(get(k)); },
+    async put(k, doc){ const l=get(k).filter(x=>x.id!==doc.id); l.push(doc); save("mirador-"+k,l); emit(k); },
+    async del(k, id){ save("mirador-"+k, get(k).filter(x=>x.id!==id)); emit(k); }};
+}
+function dbStore(db){
+  return {kind:"db",
+    watch(k, fn){ db.collection(k).onSnapshot(snap=>fn(snap.docs.map(d=>Object.assign({id:d.id}, d.data()))), err=>toast("No se han podido cargar los datos. Recarga la página.")); },
+    async put(k, doc){ const {id, ...rest} = doc; await db.collection(k).doc(id).set(rest); },
+    async del(k, id){ await db.collection(k).doc(id).delete(); }};
+}
+const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+
+/* ---------- Exportar ---------- */
+const num = v => (v===""||v==null) ? "" : Number(v);
+function exportRows(){
+  return filteredEvals().map(e=>({
+    "Fecha": fmtDate(e.fecha), "Alumno/a": studentName(e.alumno),
+    ...Object.fromEntries(CRITERIOS.map(c=>[c.n, NIVELES[e[c.k]]||""])),
+    "Fase A (de 12)": num(e.faseA), "Fase B (de 8)": num(e.faseB), "Fase D (de 8)": num(e.faseD), "Comandas": num(e.comandas),
+    "Preguntó por alérgenos": e.alergenos||"", "Incidencias acertadas": num(e.incOk), "Incidencias vistas": num(e.incTotal),
+    "Observaciones": e.notas||""
+  }));
+}
+function fileBase(){ return "Las_Moreras_resultados_" + (teacher.filter? studentName(teacher.filter).replace(/\s+/g,"_")+"_" : "") + today(); }
+async function offer(filename, data){
+  if(!downloads){ toast("Este dispositivo no permite descargar archivos desde aquí."); return; }
+  try{ await downloads.save({filename, data}); }
+  catch(e){ if(e && e.code==="declined") return; toast("No se ha podido descargar el archivo."); }
+}
+async function exportXlsx(){
+  if(!window.XLSX){ toast("No se ha cargado el módulo de Excel. Revisa la conexión."); return; }
+  const ws = XLSX.utils.json_to_sheet(exportRows());
+  ws["!cols"] = [{wch:11},{wch:24},{wch:16},{wch:16},{wch:16},{wch:16},{wch:9},{wch:9},{wch:9},{wch:10},{wch:12},{wch:10},{wch:10},{wch:50}];
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Resultados");
+  const leyenda = XLSX.utils.aoa_to_sheet([["Criterio","En proceso","Adecuado","Destacado"], ...CRITERIOS.map(c=>[c.n,...c.d])]);
+  XLSX.utils.book_append_sheet(wb, leyenda, "Rúbrica");
+  const buf = XLSX.write(wb, {bookType:"xlsx", type:"array"});
+  await offer(fileBase()+".xlsx", new Blob([buf]));
+}
+async function exportPdf(){
+  const J = window.jspdf && window.jspdf.jsPDF;
+  if(!J){ toast("No se ha cargado el módulo de PDF. Revisa la conexión."); return; }
+  const doc = new J({orientation:"landscape", unit:"mm", format:"a4"});
+  doc.setFont("helvetica","bold"); doc.setFontSize(15);
+  doc.text("Las Moreras · Resultados de la simulación (HOTR0208)", 14, 16);
+  doc.setFont("helvetica","normal"); doc.setFontSize(10);
+  doc.text((teacher.filter? "Alumno/a: "+studentName(teacher.filter) : "Todo el grupo") + " · Exportado el " + fmtDate(today()), 14, 23);
+  const rows = exportRows();
+  const head = Object.keys(rows[0]);
+  doc.autoTable({startY:28, head:[head], body:rows.map(r=>head.map(h=>String(r[h]))), styles:{fontSize:8, cellPadding:1.8, valign:"top"}, headStyles:{fillColor:[30,91,74]}, columnStyles:{13:{cellWidth:60}}});
+  await offer(fileBase()+".pdf", doc.output("blob"));
+}
+
+/* ---------- Eventos ---------- */
+document.addEventListener("click", async ev=>{
+  const t = ev.target.closest("button"); if(!t) return;
+  if(t.id==="modeStudent"){ mode="alumno"; render(); return; }
+  if(t.id==="modeTeacher"){ mode="docente"; render(); return; }
+  if(mode==="alumno"){
+    if(t.dataset.go!=null){ S.step=+t.dataset.go; persist(); render(); window.scrollTo({top:0}); return; }
+    if(t.dataset.add){ draft.lines[t.dataset.add]=(draft.lines[t.dataset.add]||0)+1; render(); toast("Añadido a la comanda: "+ITEMS.find(i=>i.id===t.dataset.add).n); return; }
+    if(t.dataset.qty){ const id=t.dataset.qty; draft.lines[id]=Math.max(0,(draft.lines[id]||0)+ +t.dataset.d); render(); return; }
+    if(t.id==="toAllergens"){ draft.stage="ask"; render(); $("#orderBox").scrollIntoView({block:"nearest"}); return; }
+    if(t.dataset.ask){ draft.asked=t.dataset.ask; draft.allergies=[]; draft.stage = t.dataset.ask==="alergias" ? "which" : "result"; render(); return; }
+    if(t.dataset.allergy){ const a=t.dataset.allergy; draft.allergies = draft.allergies.includes(a)? draft.allergies.filter(x=>x!==a) : draft.allergies.concat(a); render(); return; }
+    if(t.id==="checkAllergy"){ draft.stage="result"; render(); return; }
+    if(t.id==="backToMenu"){ draft.stage="menu"; render(); return; }
+    if(t.id==="sendOrder"){ S.orders.push({mesa:draft.mesa, lines:draft.lines, nota:draft.nota, asked:draft.asked, allergies:draft.allergies}); persist(); draft={mesa:draft.mesa, lines:{}, nota:"", stage:"menu", asked:null, allergies:[]}; toast("Comanda pasada a barra"); render(); return; }
+    if(t.dataset.opt!=null){ S._pick=+t.dataset.opt; const idx=S.incOrder[S.incPos]; S.inc[idx]=S._opts.list[S._pick].c; persist(); render(); return; }
+    if(t.id==="incNext"){ S.incPos++; S._pick=null; S._opts=null; persist(); render(); return; }
+    if(t.id==="incRestart"){ S.inc={}; S.incPos=0; S.incOrder=shuffle(INCIDENCIAS.map((_,i)=>i)); S._pick=null; S._opts=null; persist(); render(); return; }
+    if(t.id==="copyCode"){ const box=$("#codeBox"); const ok=()=>{ toast("Código copiado. Pégalo en un mensaje a tu docente."); };
+      try{ navigator.clipboard.writeText(box.value).then(ok, ()=>{ box.focus(); box.select(); toast("Mantén pulsado el código y elige Copiar."); }); }
+      catch(e){ box.focus(); box.select(); toast("Mantén pulsado el código y elige Copiar."); } return; }
+    if(t.id==="resetAsk"){ $("#resetBox").innerHTML=`<span>¿Seguro? Se borrará tu progreso en este dispositivo.</span><button type="button" class="btn danger" id="resetYes">Sí, empezar de nuevo</button><button type="button" class="btn ghost" id="resetNo">No</button>`; return; }
+    if(t.id==="resetYes"){ S=FRESH(); draft={mesa:"Mesa 1", lines:{}, nota:"", stage:"menu", asked:null, allergies:[]}; persist(); render(); return; }
+    if(t.id==="resetNo"){ render(); return; }
+  } else {
+    if(t.dataset.ttab){ teacher.tab=t.dataset.ttab; teacher.confirmDel=null; render(); return; }
+    if(t.id==="useCode"){
+      const r = readCode(teacher.paste);
+      if(!r){ teacher.pasteMsg=`<div class="note bad">No reconozco el código. Comprueba que empieza por LM1. y que está completo.</div>`; render(); return; }
+      let st = matchStudent(r.name), added=false;
+      if(!st && r.name){ const doc={id:newId(), nombre:r.name, creado:Date.now()}; try{ await store.put("alumnos",doc); st=doc; added=true; if(!teacher.students.some(s=>s.id===doc.id)) teacher.students.push(doc); }catch(e){} }
+      teacher.form = Object.assign(emptyForm(), {alumno: st?st.id:"", fecha: r.fecha||today(), faseA:String(r.a), faseB:String(r.b), faseD:String(r.d), comandas:String(r.orders), incOk:String(r.incOk), incTotal:String(r.incTotal),
+        alergenos: r.orders ? (r.asked===r.orders?"Siempre":r.asked===0?"Nunca":"A veces") : ""});
+      teacher.paste=""; teacher.pasteMsg=`<div class="note ok">Datos de <b>${esc(r.name)}</b> cargados${added?" y añadido a tu lista de alumnos":""}. Marca la rúbrica y guarda.</div>`;
+      render(); return;
+    }
+    if(t.dataset.crit){ teacher.form[t.dataset.crit]=+t.dataset.v; render(); return; }
+    if(t.dataset.alerg){ teacher.form.alergenos = teacher.form.alergenos===t.dataset.alerg? "" : t.dataset.alerg; render(); return; }
+    if(t.id==="saveEval"){
+      const f=teacher.form;
+      if(!f.alumno){ toast("Elige a quién estás evaluando."); return; }
+      if(CRITERIOS.some(c=>!f[c.k])){ toast("Marca un nivel en los cuatro criterios."); return; }
+      t.disabled=true;
+      try{ await store.put("evaluaciones", Object.assign({id:newId(), creado:Date.now()}, f)); toast("Evaluación guardada de "+studentName(f.alumno)); teacher.form=Object.assign(emptyForm(),{fecha:f.fecha}); teacher.pasteMsg=""; render(); }
+      catch(e){ t.disabled=false; toast("No se ha podido guardar. Inténtalo otra vez."); }
+      return;
+    }
+    if(t.id==="addStudent"){
+      const inp=$("#newStudent"), nombre=inp.value.trim(); if(!nombre){ inp.focus(); return; }
+      try{ await store.put("alumnos",{id:newId(), nombre, creado:Date.now()}); toast(nombre+" añadido a la lista"); }catch(e){ toast("No se ha podido añadir. Inténtalo otra vez."); }
+      return;
+    }
+    if(t.dataset.askdel){ teacher.confirmDel=t.dataset.askdel; render(); return; }
+    if(t.hasAttribute("data-nodel")){ teacher.confirmDel=null; render(); return; }
+    if(t.dataset.del){ try{ await store.del("evaluaciones", t.dataset.del); toast("Evaluación borrada"); }catch(e){ toast("No se ha podido borrar."); } teacher.confirmDel=null; render(); return; }
+    if(t.dataset.delstu){ try{ await store.del("alumnos", t.dataset.delstu); }catch(e){ toast("No se ha podido quitar."); } teacher.confirmDel=null; render(); return; }
+    if(t.id==="expXlsx"){ exportXlsx(); return; }
+    if(t.id==="expPdf"){ exportPdf(); return; }
+  }
+});
+document.addEventListener("change", ev=>{
+  const t=ev.target;
+  if(t.dataset && t.dataset.check){ const k=t.dataset.check; S[k] = t.checked ? S[k].concat(t.value) : S[k].filter(x=>x!==t.value); persist(); render(); return; }
+  if(t.id==="mesa"){ draft.mesa=t.value; return; }
+  if(t.id==="fAlumno"){ teacher.form.alumno=t.value; return; }
+  if(t.id==="fFecha"){ teacher.form.fecha=t.value; return; }
+  if(t.id==="filter"){ teacher.filter=t.value; render(); return; }
+});
+document.addEventListener("input", ev=>{
+  const t=ev.target;
+  if(t.id==="stuName"){ S.name=t.value.trim(); persist(); return; }
+  if(t.id==="nota"){ draft.nota=t.value; return; }
+  const map={fA:"faseA", fB:"faseB", fD:"faseD", fCom:"comandas", pasteCode:"_paste", fIncOk:"incOk", fIncTotal:"incTotal", fNotas:"notas"};
+  if(map[t.id]==="_paste"){ teacher.paste=t.value; return; }
+  if(map[t.id]) teacher.form[map[t.id]]=t.value;
+});
+document.addEventListener("keydown", ev=>{ if(ev.key==="Enter" && ev.target.id==="newStudent"){ ev.preventDefault(); $("#addStudent").click(); } });
+
+/* ---------- Arranque ---------- */
+render();
+(async ()=>{
+  const C = window.claude;
+  if(!C || !C.use) return;
+  const [user, db, dl] = await Promise.all([C.use("user").catch(()=>null), C.use("db").catch(()=>null), C.use("downloads").catch(()=>null)]);
+  downloads = dl;
+  const owner = user ? await user.isOwner().catch(()=>false) : false;
+  if(!owner) return;
+  store = db ? dbStore(db) : localStore();
+  store.watch("alumnos", l=>{ teacher.students=l.sort((a,b)=>a.nombre.localeCompare(b.nombre,"es")); if(mode==="docente") render(); });
+  store.watch("evaluaciones", l=>{ teacher.evals=l; if(mode==="docente") render(); });
+  $("#modeSwitch").hidden=false;
+})();
+</script>
+
+</body>
+</html>
