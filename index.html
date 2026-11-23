@@ -1,4 +1,6 @@
 <!doctype html>
+<!-- Simulador TPV «Las Moreras» · © 2026 Ángel Manuel Domínguez Lavado. Todos los derechos reservados.
+     Uso sujeto a la licencia de LICENSE.md: prohibida su distribución o comercialización. -->
 <html lang="es">
 <head>
 <meta charset="utf-8">
@@ -189,7 +191,7 @@ nav.phases .badge{position:absolute;top:4px;right:4px;min-width:20px;height:20px
 .sync-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--muted);margin-right:8px;vertical-align:middle}
 .sync-dot[data-state="ok"]{background:var(--ok)}
 .sync-dot[data-state="lost"]{background:var(--bad)}
-</style>
+footer.legal{margin-top:32px;padding-top:14px;border-top:1px solid var(--line);font-size:.85rem;color:var(--muted);display:flex;flex-direction:column;gap:8px}footer.legal p{margin:0}</style>
 
 <div class="wrap">
   <header class="top">
@@ -204,11 +206,13 @@ nav.phases .badge{position:absolute;top:4px;right:4px;min-width:20px;height:20px
     </div>
   </header>
   <main id="app"></main>
+  <footer class="legal" id="legal"></footer>
 </div>
 <div class="toast" id="toast" role="status" hidden></div>
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-app-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-database-compat.js"></script>
 <script>window.MORERAS_FIREBASE = {"databaseURL":"https://las-moreras-default-rtdb.europe-west1.firebasedatabase.app","projectId":"las-moreras"};</script>
+<script>window.MORERAS_STANDALONE=true;window.MORERAS_TITULAR="Ángel Manuel Domínguez Lavado";window.MORERAS_KEY_HASH="042bc9ecd67d9ae45f2237b1f3135d9c591ffe155cc038329f0b0c6fd1d34bea";</script>
 <script>
 "use strict";
 /* =========================================================
@@ -313,6 +317,7 @@ const whoLine = () => S.groups.filter(g=>g.members.length).map(g=>`${esc(g.name)
 function render(){
   const ms=$("#modeStudent"), mt=$("#modeTeacher");
   if(ms){ ms.setAttribute("aria-pressed", mode==="alumno"); mt.setAttribute("aria-pressed", mode==="docente"); }
+  if(typeof renderExtra==="function"){ const h=renderExtra(); if(h!=null){ $("#app").innerHTML=h; return; } }
   if(mode==="docente" && typeof renderTeacher==="function"){ $("#app").innerHTML = renderTeacher(); return; }
   const badges = {barra:pending("barra"), cocina:pending("cocina")};
   const allowed = SYNC.on ? STEPS_BY_PUESTO[L.puesto] : null;
@@ -691,6 +696,7 @@ function tpvInput(t){
 }
 document.addEventListener("click", ev=>{
   const t = ev.target.closest("button"); if(!t) return;
+  if(typeof extraClick==="function" && extraClick(t)) return;
   if(t.id==="modeStudent"){ mode="alumno"; render(); return; }
   if(t.id==="modeTeacher"){ mode="docente"; render(); return; }
   if(mode==="alumno") tpvClick(t); else if(typeof teacherClick==="function") teacherClick(t);
@@ -817,6 +823,272 @@ function syncClick(t){
   if(t.id==="leaveNo"){ render(); return true; }
   return false;
 }
+
+"use strict";
+/* =========================================================
+   Modo docente (solo visible para el propietario en Claude)
+   ========================================================= */
+const CRITERIOS = [
+  {k:"c1", n:"Higiene, seguridad y manipulación", d:["Omite normas básicas de aseo, desinfección o manipulación correcta del menaje y alimentos.","Cumple las normas básicas de higiene y manipulación con indicaciones puntuales.","Mantiene higiene personal, limpieza de puesto y manipulación segura (pie de copa, mango de cubierto) de forma constante.","Aplica rigurosamente los protocolos higiénico-sanitarios y de prevención en todas las fases, anticipando riesgos."]},
+  {k:"c2", n:"Trabajo en equipo y gestión de comandas (sala-barra-cocina)", d:["Toma comandas incompletas o descoordina la comunicación entre sala, barra y cocina.","Registra las comandas principales y mantiene una coordinación básica entre puestos.","Gestiona con fluidez el circuito de la nota de pedido desde la toma hasta su preparación en barra/cocina y pase.","Sincroniza tiempos entre sala, barra y cocina con precisión, verifica alérgenos y optimiza el ritmo del equipo."]},
+  {k:"c3", n:"Ejecución técnica del servicio y resolución de incidencias", d:["Presenta dificultad con la bandeja, el servicio en barra/mesa o reacciona con inseguridad ante incidencias.","Ejecuta el servicio básico en tiempos aceptables y resuelve incidencias con apoyo.","Trabaja con orden, buena postura, manejo seguro de bandeja y resuelve incidencias (copa, derrame) con cortesía.","Demuestra destreza técnica, elegancia en el trato y resolución ágil, discreta y eficaz de cualquier imprevisto."]},
+  {k:"c4", n:"Facturación, cobro (efectivo/tarjeta) y cierre", d:["Comete errores en el tique, el cálculo del cambio en efectivo, el datáfono o deja el cierre incompleto.","Emite tiques y realiza cobros en efectivo o tarjeta con supervisión, completando el cierre básico.","Factura correctamente, ejecuta cobros en efectivo y tarjeta sin errores y realiza limpieza y reposición ordenadas.","Gestiona cobros mixtos/efectivo/tarjeta con total exactitud y rigor, cuadra el cierre y deja el local listo para el siguiente turno."]}
+];
+const NIVELES = [["En proceso",1,4.9],["Adecuado",5,6.9],["Avanzado",7,8.9],["Excelente",9,10]];
+const nivel = v => { if(v==null||isNaN(v)) return ""; const n = NIVELES.find(([,a,b])=>v>=a && v<=b+0.0001); return n?n[0]:""; };
+const levelClass = v => ({"En proceso":"l1","Adecuado":"l2","Avanzado":"l2","Excelente":"l3"})[nivel(v)]||"";
+let teacher = {tab:"evaluar", sessions:[], paste:"", pasteMsg:"", draft:null, filter:"", confirmDel:null};
+let store = null, downloads = null;
+
+function avg(g){ const v=CRITERIOS.map(c=>g.notas[c.k]).filter(x=>x!=null&&!isNaN(x)); return v.length===4 ? Math.round(v.reduce((a,b)=>a+b,0)/4*10)/10 : null; }
+function evidence(sess, role){
+  const x = sess.m.rots[0]; if(!x) return "";
+  if(role==="sala") return `Sala y caja (todo el puesto): ${x.com} comandas, alérgenos ${x.ask}/${x.com}, ${x.tk} tiques (${x.fc} completas), ${x.ef} cobros en efectivo y ${x.tj} con tarjeta, ${x.ce} errores de cambio`;
+  if(role==="barra") return `Barra (todo el puesto): ${x.nb} notas de pedido${x.tb!=null?`, ${x.tb} min de media hasta «lista»`:''}`;
+  if(role==="cocina") return `Cocina/Pase (todo el puesto): ${x.nc} notas de pedido${x.tc!=null?`, ${x.tc} min de media hasta «lista»`:''}`;
+  return "";
+}
+const puestoTxt = roles => roles.length===1 ? (ROLES[roles[0]]||roles[0]) : roles.map((r,i)=>`R${i+1} ${ROLES[r]||r}`).join(" · ");
+function renderTeacher(){
+  const tabs = `<div class="tabs" role="tablist">${[["evaluar","Evaluar"],["resultados","Resultados"]].map(([k,n])=>`<button type="button" class="chip" role="tab" data-ttab="${k}" aria-pressed="${teacher.tab===k}">${n}</button>`).join("")}</div>`;
+  const note = store && store.kind==="local" ? `<div class="note">Los resultados se guardan en este navegador. Exporta a Excel de vez en cuando para tener copia.</div>` : "";
+  return `<div class="stack"><div><div class="eyebrow">Modo docente</div><h2>Evaluación individual</h2></div>${note}${tabs}${teacher.tab==="evaluar"?tEvaluar():tResultados()}</div>`;
+}
+function tEvaluar(){
+  const paste = `<div class="card stack" style="border:2px dashed var(--brass);background:var(--brass-soft)">
+    <h3>Pegar el código del servicio</h3>
+    <p class="muted">Pega el mensaje con el código que te envían desde el TPV. Se cargan los alumnos de cada puesto y lo que se hizo en el servicio.</p>
+    <textarea id="pasteCode" rows="2" placeholder="LM3.…" style="min-height:0">${esc(teacher.paste)}</textarea>
+    ${teacher.pasteMsg}
+    <div class="row"><button type="button" class="btn" id="useCode">Cargar el servicio</button></div></div>`;
+  const D = teacher.draft;
+  if(!D) return paste;
+  const s = D.sess;
+  return paste + `<div class="card stack">
+    <div class="row" style="justify-content:space-between"><h3>${esc(s.team||"Servicio")} · ${fmtDate(s.f)}</h3><span class="muted">Fase A ${s.m.a[0]}/${s.m.a[1]} · Arqueo ${s.m.arq==null?"sin hacer":s.m.arq===0?"cuadra":eur(s.m.arq)} · Fase D ${s.m.d[0]}/${s.m.d[1]}</span></div>
+    <p class="muted">Pon una nota de 1 a 10 en cada criterio a cada alumno.</p>
+    ${D.groups.map((G,gi)=>{ const media=avg(G);
+      return `<div class="card stack" style="padding:14px">
+        <div class="row" style="justify-content:space-between"><h3>${esc(G.name)} <span class="muted" style="font-weight:400;font-size:1rem">· ${esc(puestoTxt(G.roles))}</span></h3><span class="pill ${levelClass(media)}" data-media="${gi}">${media!=null?`Media ${String(media).replace(".",",")} · ${nivel(media)}`:'Media —'}</span></div>
+        <p class="muted" style="font-size:.9rem">${esc(evidence(s,G.roles[0]))}</p>
+        <div class="grid2">${CRITERIOS.map(c=>{ const v=G.notas[c.k];
+          return `<label class="field"><span>${c.n}</span><div class="row" style="flex-wrap:nowrap"><input type="text" inputmode="decimal" data-nota="${gi}" data-c="${c.k}" value="${v==null?"":String(v).replace(".",",")}" placeholder="1 a 10" style="width:6.5em"><span class="pill ${levelClass(v)}">${nivel(v)||"—"}</span></div></label>`; }).join("")}</div>
+        <details><summary class="muted">Ver los descriptores de la rúbrica</summary>${CRITERIOS.map(c=>`<p style="margin-top:8px"><b>${c.n}</b></p><ul style="margin:0;padding-left:1.1em;font-size:.9rem">${c.d.map((d,i)=>`<li><b>${NIVELES[i][0]} (${String(NIVELES[i][1]).replace(".",",")}–${String(NIVELES[i][2]).replace(".",",")}):</b> ${esc(d)}</li>`).join("")}</ul>`).join("")}</details>
+        <label class="field"><span>Observaciones</span><textarea data-gobs="${gi}" rows="2" style="min-height:0">${esc(G.obs)}</textarea></label>
+      </div>`; }).join("")}
+    <div class="row"><button type="button" class="btn" id="saveSess">Guardar la evaluación</button><button type="button" class="btn ghost" id="dropDraft">Descartar</button></div>
+  </div>`;
+}
+function flatRows(){
+  const out=[];
+  teacher.sessions.filter(s=>!teacher.filter||s.id===teacher.filter).sort((a,b)=>(b.f||"").localeCompare(a.f||"")||(b.creado||0)-(a.creado||0)).forEach(s=>{
+    s.groups.forEach(G=>G.members.forEach(name=>out.push({sid:s.id, fecha:s.f, sesion:s.team||"Servicio", alumno:name, puestos:puestoTxt(G.roles), notas:G.notas, media:G.media, obs:G.obs})));
+  });
+  return out;
+}
+function tResultados(){
+  const rows = flatRows();
+  return `<div class="stack">
+    <div class="grid2"><label class="field"><span>Ver resultados de</span><select id="filter"><option value="">Todos los servicios</option>${teacher.sessions.map(s=>`<option value="${esc(s.id)}" ${teacher.filter===s.id?'selected':''}>${esc((s.team||"Servicio")+" · "+fmtDate(s.f))}</option>`).join("")}</select></label></div>
+    <div class="row"><button type="button" class="btn" id="expXlsx" ${rows.length?'':'disabled'}>Exportar a Excel</button><button type="button" class="btn ghost" id="expPdf" ${rows.length?'':'disabled'}>Exportar a PDF</button></div>
+    <div class="card stack"><h3>Copia de seguridad</h3><p class="muted">Las evaluaciones se guardan en este navegador. Descarga una copia de vez en cuando y guárdala en una carpeta segura. Si cambias de ordenador o se borra el navegador, restaura la copia.</p>
+      <div class="row"><button type="button" class="btn ghost" id="backupDl" ${teacher.sessions.length?'':'disabled'}>Descargar copia</button><button type="button" class="btn ghost" id="backupUp">Restaurar una copia</button><input type="file" id="backupFile" accept=".json,application/json" hidden></div></div>
+    ${rows.length?`<div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Alumno/a</th><th>Puesto</th>${CRITERIOS.map((c,i)=>`<th title="${esc(c.n)}">C${i+1}</th>`).join("")}<th>Media</th><th>Nivel</th><th>Observaciones</th></tr></thead><tbody>
+      ${rows.map(r=>`<tr><td>${fmtDate(r.fecha)}</td><td>${esc(r.alumno)}</td><td>${esc(r.puestos)}</td>${CRITERIOS.map(c=>`<td class="num">${String(r.notas[c.k]).replace(".",",")}</td>`).join("")}<td class="num"><b>${String(r.media).replace(".",",")}</b></td><td><span class="pill ${levelClass(r.media)}">${nivel(r.media)}</span></td><td>${esc(r.obs)}</td></tr>`).join("")}
+    </tbody></table></div>
+    <p class="muted" style="font-size:.85rem">${CRITERIOS.map((c,i)=>`C${i+1}: ${c.n}`).join(" · ")}</p>
+    <div class="stack" style="gap:6px"><h3>Servicios guardados</h3>${teacher.sessions.map(s=>`<div class="row" style="justify-content:space-between;border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--surface)"><span>${esc((s.team||"Servicio")+" · "+fmtDate(s.f))} · ${s.groups.reduce((n,G)=>n+G.members.length,0)} alumnos</span>${teacher.confirmDel===s.id?`<span class="confirm-row"><button type="button" class="btn small danger" data-del="${s.id}">Borrar</button><button type="button" class="btn small ghost" data-nodel>No</button></span>`:`<button type="button" class="btn small ghost" data-askdel="${s.id}">Borrar</button>`}</div>`).join("")}</div>`
+    :`<div class="card"><p>Aún no hay evaluaciones guardadas. Pega un código en la pestaña <b>Evaluar</b>.</p></div>`}
+  </div>`;
+}
+
+/* ---------- Almacenamiento ---------- */
+function localStore(){
+  const get = k => load("moreras-"+k, []); const L = {};
+  const emit = k => (L[k]||[]).forEach(fn=>fn(get(k)));
+  return {kind:"local", watch(k,fn){ (L[k]=L[k]||[]).push(fn); fn(get(k)); },
+    async put(k,doc){ const l=get(k).filter(x=>x.id!==doc.id); l.push(doc); save("moreras-"+k,l); emit(k); },
+    async del(k,id){ save("moreras-"+k, get(k).filter(x=>x.id!==id)); emit(k); }};
+}
+function dbStore(db){
+  return {kind:"db",
+    watch(k,fn){ db.collection(k).onSnapshot(snap=>fn(snap.docs.map(d=>Object.assign({id:d.id}, d.data()))), ()=>toast("No se han podido cargar los datos. Recarga la página.")); },
+    async put(k,doc){ const {id,...rest}=doc; await db.collection(k).doc(id).set(rest); },
+    async del(k,id){ await db.collection(k).doc(id).delete(); }};
+}
+
+/* ---------- Exportar ---------- */
+function exportRows(){
+  return flatRows().map(r=>({"Fecha":fmtDate(r.fecha), "Servicio":r.sesion, "Alumno/a":r.alumno, "Puesto":r.puestos,
+    ...Object.fromEntries(CRITERIOS.map(c=>[c.n, r.notas[c.k]])), "Nota media":r.media, "Nivel":nivel(r.media), "Observaciones":r.obs||""}));
+}
+function browserDownloads(){
+  return {async save({filename, data}){ const u=URL.createObjectURL(data); const a=document.createElement("a"); a.href=u; a.download=filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u), 4000); }};
+}
+function fileBase(){ return "Las_Moreras_evaluacion_" + today(); }
+async function offer(filename, data){
+  if(!downloads){ toast("Este dispositivo no permite descargar archivos desde aquí."); return; }
+  try{ await downloads.save({filename, data}); }catch(e){ if(e && e.code==="declined") return; toast("No se ha podido descargar el archivo."); }
+}
+async function exportXlsx(){
+  if(typeof loadLibs==="function") await loadLibs();
+  if(!window.XLSX){ toast("No se ha cargado el módulo de Excel. Revisa la conexión."); return; }
+  const ws = XLSX.utils.json_to_sheet(exportRows());
+  ws["!cols"] = [{wch:11},{wch:22},{wch:24},{wch:16},{wch:14},{wch:14},{wch:14},{wch:14},{wch:10},{wch:12},{wch:50}];
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Evaluación");
+  const leyenda = XLSX.utils.aoa_to_sheet([["Criterio", ...NIVELES.map(([n,a,b])=>`${n} (${a}-${b})`)], ...CRITERIOS.map(c=>[c.n,...c.d])]);
+  XLSX.utils.book_append_sheet(wb, leyenda, "Rúbrica");
+  await offer(fileBase()+".xlsx", new Blob([XLSX.write(wb,{bookType:"xlsx",type:"array"})]));
+}
+async function exportPdf(){
+  if(typeof loadLibs==="function") await loadLibs();
+  const J = window.jspdf && window.jspdf.jsPDF; if(!J){ toast("No se ha cargado el módulo de PDF. Revisa la conexión."); return; }
+  const doc = new J({orientation:"landscape", unit:"mm", format:"a4"});
+  doc.setFont("helvetica","bold"); doc.setFontSize(14);
+  doc.text("Las Moreras · Evaluación de la simulación (HOTR0208)", 14, 15);
+  doc.setFont("helvetica","normal"); doc.setFontSize(9);
+  doc.text("Prácticas docentes SSC_C_017_5B · Exportado el " + fmtDate(today()), 14, 21);
+  const rows = flatRows();
+  doc.autoTable({startY:26, head:[["Fecha","Servicio","Alumno/a","Puesto","C1","C2","C3","C4","Media","Nivel","Observaciones"]],
+    body:rows.map(r=>[fmtDate(r.fecha), r.sesion, r.alumno, r.puestos, ...CRITERIOS.map(c=>String(r.notas[c.k]).replace(".",",")), String(r.media).replace(".",","), nivel(r.media), r.obs||""]),
+    styles:{fontSize:8, cellPadding:1.6, valign:"top"}, headStyles:{fillColor:[30,91,74]}, columnStyles:{1:{cellWidth:36}, 10:{cellWidth:60}}});
+  let y = doc.lastAutoTable.finalY + 6;
+  doc.setFontSize(8); CRITERIOS.forEach((c,i)=>{ doc.text(`C${i+1}: ${c.n}`, 14, y); y+=4; });
+  doc.text("Niveles: En proceso 1-4,9 · Adecuado 5-6,9 · Avanzado 7-8,9 · Excelente 9-10", 14, y);
+  await offer(fileBase()+".pdf", doc.output("blob"));
+}
+
+/* ---------- Eventos del docente ---------- */
+async function teacherClick(t){
+  if(t.dataset.ttab){ teacher.tab=t.dataset.ttab; teacher.confirmDel=null; render(); return; }
+  if(t.id==="useCode"){
+    const s = readCode(teacher.paste);
+    if(!s){ teacher.pasteMsg=`<div class="note bad">No reconozco el código. Comprueba que empieza por LM3. y que está completo.</div>`; render(); return; }
+    const groups=[]; ["sala","barra","cocina"].forEach(k=>((s.p||{})[k]||[]).forEach(n=>groups.push({name:n, members:[n], roles:[k], notas:{}, obs:""})));
+    teacher.draft = {sess:s, groups};
+    teacher.paste=""; teacher.pasteMsg=`<div class="note ok">Servicio cargado con ${groups.length} alumnos. Pon las notas y guarda.</div>`; render(); return;
+  }
+  if(t.id==="dropDraft"){ teacher.draft=null; teacher.pasteMsg=""; render(); return; }
+  if(t.id==="saveSess"){
+    const D = teacher.draft;
+    const bad = D.groups.find(G=>CRITERIOS.some(c=>{ const v=G.notas[c.k]; return v==null||isNaN(v)||v<1||v>10; }));
+    if(bad){ toast("Falta alguna nota (de 1 a 10) en "+bad.name+"."); return; }
+    D.groups.forEach(G=>G.media=avg(G));
+    t.disabled=true;
+    try{ await store.put("sesiones",{id:uid(), creado:Date.now(), team:D.sess.team||"", f:D.sess.f, m:D.sess.m, groups:D.groups}); teacher.draft=null; teacher.pasteMsg=""; teacher.tab="resultados"; toast("Evaluación guardada"); render(); }
+    catch(e){ t.disabled=false; toast("No se ha podido guardar. Inténtalo otra vez."); }
+    return;
+  }
+  if(t.dataset.askdel){ teacher.confirmDel=t.dataset.askdel; render(); return; }
+  if(t.hasAttribute("data-nodel")){ teacher.confirmDel=null; render(); return; }
+  if(t.dataset.del){ try{ await store.del("sesiones", t.dataset.del); toast("Servicio borrado"); }catch(e){ toast("No se ha podido borrar."); } teacher.confirmDel=null; render(); return; }
+  if(t.id==="expXlsx"){ exportXlsx(); return; }
+  if(t.id==="expPdf"){ exportPdf(); return; }
+  if(t.id==="backupDl"){ offer("Las_Moreras_copia_"+today()+".json", new Blob([JSON.stringify({app:"las-moreras", v:3, sesiones:teacher.sessions},null,1)],{type:"application/json"})); return; }
+  if(t.id==="backupUp"){ $("#backupFile").click(); return; }
+}
+function teacherChange(t){
+  if(t.id==="filter"){ teacher.filter=t.value; render(); return; }
+  if(t.id==="backupFile" && t.files && t.files[0]){ const f=t.files[0]; f.text().then(async txt=>{ let d; try{ d=JSON.parse(txt); }catch(e){ d=null; }
+      if(!d || d.app!=="las-moreras" || !Array.isArray(d.sesiones)){ toast("Este archivo no es una copia de Las Moreras."); return; }
+      for(const x of d.sesiones){ if(x && x.id && Array.isArray(x.groups)) await store.put("sesiones", x); }
+      toast(`Copia restaurada: ${d.sesiones.length} servicios.`); render(); }); t.value=""; return; }
+
+}
+function teacherInput(t){
+  if(t.id==="pasteCode"){ teacher.paste=t.value; return; }
+  if(t.dataset && t.dataset.nota!=null){ const gi=+t.dataset.nota, G=teacher.draft.groups[gi], v=num(t.value); G.notas[t.dataset.c] = isNaN(v)?null:Math.min(10,Math.max(0,v));
+    const pl=t.nextElementSibling; const val=G.notas[t.dataset.c]; pl.className="pill "+levelClass(val); pl.textContent=nivel(val)||"—";
+    const mp=document.querySelector(`[data-media="${gi}"]`), m=avg(G); if(mp){ mp.className="pill "+levelClass(m); mp.textContent = m!=null?`Media ${String(m).replace(".",",")} · ${nivel(m)}`:"Media —"; }
+    return; }
+  if(t.dataset && t.dataset.gobs!=null){ teacher.draft.groups[+t.dataset.gobs].obs=t.value; return; }
+}
+
+/* ---------- Arranque ---------- */
+(async ()=>{
+  if(window.MORERAS_STANDALONE){ store = localStore(); downloads = browserDownloads(); store.watch("sesiones", l=>{ teacher.sessions=l; if(mode==="docente") render(); }); return; }
+  const C = window.claude; if(!C || !C.use) return;
+  const [user, db, dl] = await Promise.all([C.use("user").catch(()=>null), C.use("db").catch(()=>null), C.use("downloads").catch(()=>null)]);
+  downloads = dl;
+  const owner = user ? await user.isOwner().catch(()=>false) : false;
+  if(!owner) return;
+  store = db ? dbStore(db) : localStore();
+  store.watch("sesiones", l=>{ teacher.sessions=l; if(mode==="docente") render(); });
+  $("#modeSwitch").hidden=false;
+})();
+
+/* ---------- Licencia y acceso docente (versión independiente de Claude) ---------- */
+const TITULAR = window.MORERAS_TITULAR || "[Nombre del titular]";
+const CENTRO = "Unidad Municipal de Formación y Desarrollo (UMDF) «Antonio Morales Recio» — Las Moreras, del Ayuntamiento de Monesterio (Badajoz)";
+const LICENCIA = [
+  ["Titularidad", `El simulador TPV «Las Moreras» (su código, diseño, textos y contenidos) es una obra original de ${TITULAR}, que se reserva todos los derechos de propiedad intelectual sobre ella. La ha desarrollado de forma voluntaria, sin percibir retribución y fuera de las funciones propias de su labor docente. Esta licencia no transmite la propiedad de la aplicación ni ningún derecho de explotación.`],
+  ["Licencia de uso", `Se concede a la ${CENTRO} una licencia de uso gratuita, sin ánimo de lucro, intransferible y de uso exclusivo para la formación que imparte el propio centro con su alumnado y profesorado.`],
+  ["Uso educativo del código", `Se permite consultar el código y utilizarlo con fines exclusivamente educativos y sin ánimo de lucro, citando siempre la autoría de ${TITULAR}.`],
+  ["Prohibiciones", `Queda prohibido: vender, alquilar, sublicenciar o comercializar la aplicación o cualquier parte de ella; distribuirla o cederla a otras administraciones públicas o entidades privadas; usarla con fines lucrativos; atribuirse su autoría o titularidad; y desarrollar nuevas versiones u obras derivadas sin acuerdo previo y por escrito con el titular.`],
+  ["Nuevas versiones", `Quien desee desarrollar una nueva versión o una versión profesional debe ponerse en contacto con el titular para llegar a un acuerdo económico.`],
+  ["Incumplimiento", `Cualquier distribución o comercialización no autorizada restringe de forma automática la licencia de uso. El titular se reserva el ejercicio de todas las acciones legales oportunas, incluida la reclamación de una indemnización económica por los daños y perjuicios causados, conforme al texto refundido de la Ley de Propiedad Intelectual (Real Decreto Legislativo 1/1996).`],
+  ["Versión beta", `La aplicación se ofrece tal cual, como versión de prueba. El titular no garantiza su funcionamiento continuo ni responde de la pérdida de datos. Las evaluaciones se guardan en el navegador del dispositivo del docente, por lo que conviene descargar copias de seguridad.`]
+];
+function vLicencia(){
+  return `<div class="stack"><div><div class="eyebrow">Licencia de uso</div><h2>Simulador TPV «Las Moreras»</h2><p class="muted">© 2026 ${esc(TITULAR)}. Todos los derechos reservados.</p></div>
+    <div class="card stack">${LICENCIA.map(([h,t],i)=>`<div><h3>${i+1}. ${esc(h)}</h3><p>${esc(t)}</p></div>`).join("")}</div>
+    <div class="row"><button type="button" class="btn" id="backFromExtra">Volver</button></div></div>`;
+}
+
+/* Clave del modo docente: solo se guarda su huella (SHA-256), no la clave */
+const KEY_HASH = window.MORERAS_KEY_HASH || "";
+const UNLOCK = "moreras-docente";
+const isUnlocked = () => { try{ return !!KEY_HASH && sessionStorage.getItem(UNLOCK)===KEY_HASH; }catch(e){ return false; } };
+async function sha(text){ const b=await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)); return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join(""); }
+let keyMsg = "";
+function vClave(){
+  return `<div class="stack" style="max-width:460px"><div><div class="eyebrow">Acceso docente</div><h2>Modo docente</h2></div>
+    <div class="card stack"><p>Escribe la clave del modo docente para evaluar los servicios y exportar los resultados.</p>
+      <label class="field"><span>Clave</span><input type="password" id="keyIn" autocomplete="current-password"></label>
+      ${keyMsg}
+      <div class="row"><button type="button" class="btn" id="keyOk">Entrar</button><button type="button" class="btn ghost" id="backFromExtra">Volver</button></div></div></div>`;
+}
+async function tryKey(){
+  const v = ($("#keyIn")||{}).value||"";
+  if(!v){ keyMsg=""; render(); return; }
+  const h = await sha("las-moreras|"+v);
+  if(h!==KEY_HASH){ keyMsg=`<div class="note bad">La clave no es correcta.</div>`; render(); setTimeout(()=>{ const i=$("#keyIn"); if(i) i.focus(); },0); return; }
+  try{ sessionStorage.setItem(UNLOCK, h); }catch(e){}
+  keyMsg=""; $("#modeSwitch").hidden=false; mode="docente"; legal(); render(); loadLibs();
+}
+
+/* Librerías de Excel y PDF: solo se cargan al entrar en el modo docente */
+let libsP = null;
+function loadLibs(){
+  if(window.XLSX && window.jspdf && window.jspdf.jsPDF && window.jspdf.jsPDF.API.autoTable) return Promise.resolve();
+  if(libsP) return libsP;
+  const one = src => new Promise((ok)=>{ const s=document.createElement("script"); s.src=src; s.onload=ok; s.onerror=()=>{ libsP=null; ok(); }; document.head.appendChild(s); });
+  libsP = one("https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js")
+    .then(()=>one("https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"))
+    .then(()=>one("https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"));
+  return libsP;
+}
+
+function renderExtra(){ if(mode==="licencia") return vLicencia(); if(mode==="clave") return vClave(); return null; }
+let prevMode = "alumno";
+function extraClick(t){
+  if(t.id==="showLicense"){ if(mode!=="licencia") prevMode = mode==="clave" ? "alumno" : mode; mode="licencia"; render(); window.scrollTo({top:0}); return true; }
+  if(t.id==="teacherAccess"){ if(isUnlocked()){ $("#modeSwitch").hidden=false; mode="docente"; loadLibs(); } else { prevMode="alumno"; keyMsg=""; mode="clave"; } render(); window.scrollTo({top:0}); if(mode==="clave") setTimeout(()=>{ const i=$("#keyIn"); if(i) i.focus(); },0); return true; }
+  if(t.id==="keyOk"){ tryKey(); return true; }
+  if(t.id==="backFromExtra"){ mode=prevMode; render(); window.scrollTo({top:0}); return true; }
+  if(t.id==="lockTeacher"){ try{ sessionStorage.removeItem(UNLOCK); }catch(e){} $("#modeSwitch").hidden=true; mode="alumno"; legal(); render(); toast("Modo docente cerrado"); return true; }
+  return false;
+}
+document.addEventListener("keydown", ev=>{ if(ev.key==="Enter" && ev.target.id==="keyIn"){ ev.preventDefault(); tryKey(); } });
+
+function legal(){
+  const f = $("#legal"); if(!f) return;
+  const standalone = !!window.MORERAS_STANDALONE;
+  f.innerHTML = `<p>© 2026 ${esc(TITULAR)}. Todos los derechos reservados. Licencia de uso gratuita y sin ánimo de lucro, exclusiva para la UMDF «Antonio Morales Recio» — Las Moreras (Monesterio). Prohibida su distribución o comercialización.</p>
+    <div class="row"><button type="button" class="btn small ghost" id="showLicense">Ver la licencia</button>${standalone?(isUnlocked()?`<button type="button" class="btn small ghost" id="lockTeacher">Cerrar el modo docente</button>`:`<button type="button" class="btn small ghost" id="teacherAccess">Acceso docente</button>`):""}</div>`;
+}
+if(window.MORERAS_STANDALONE && isUnlocked()) $("#modeSwitch").hidden=false;
+legal();
 
 if(L.code && FIREBASE_CONFIG) connect(L.code);
 render();

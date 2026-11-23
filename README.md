@@ -1,5 +1,9 @@
-# Simulador Las Moreras (versión alumno)
+# Simulador TPV «Las Moreras»
 
-Simulación del servicio de mediodía en el bistró-cafetería Las Moreras para el certificado de profesionalidad HOTR0208 (Operaciones básicas de restaurante y bar).
+Simulador de servicio de bar y restaurante para la formación HOTR0208 (Operaciones básicas de restaurante y bar).
 
-TPV de simulación compartido por equipo: 4 grupos rotan por sala, barra, cocina/pase y clientes. Incluye comandas con alérgenos, notas de pedido con estados en barra y cocina, cobro en efectivo y con tarjeta (datáfono simulado), facturas, incidencias, arqueo y un código de resultados para el docente. Todo se guarda solo en el navegador del dispositivo: esta página no envía datos a ningún servidor.
+App: https://amdomlav.github.io/las-moreras/
+
+© 2026 Ángel Manuel Domínguez Lavado. Todos los derechos reservados.
+
+Licencia de uso gratuita, sin ánimo de lucro y exclusiva para la Unidad Municipal de Formación y Desarrollo (UMDF) «Antonio Morales Recio» — Las Moreras (Ayuntamiento de Monesterio, Badajoz). Prohibida su distribución o comercialización. Consulta las condiciones completas en [LICENSE.md](LICENSE.md).
