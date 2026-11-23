@@ -129,6 +129,63 @@ td.num{font-variant-numeric:tabular-nums;text-align:center}
   nav.phases{grid-template-columns:repeat(3,minmax(0,1fr))}
   h1{font-size:1.55rem}
 }
+
+nav.phases{grid-template-columns:repeat(9,minmax(0,1fr))}
+nav.phases button{position:relative}
+nav.phases .badge{position:absolute;top:4px;right:4px;min-width:20px;height:20px;border-radius:999px;background:var(--bad);color:#fff;font-size:.72rem;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 5px}
+.wrap{max-width:980px}
+.tables{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.table-btn{border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:12px 6px;font:inherit;cursor:pointer;min-height:76px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.table-btn b{font-family:var(--font-display);font-size:1.1rem}
+.table-btn small{font-size:.78rem;color:var(--muted)}
+.table-btn[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.table-btn.busy small{color:var(--warn);font-weight:700}
+.split{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px;align-items:start}
+.queue{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.ticket{background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.ticket.st-nuevo{border-color:var(--bad)}
+.ticket.st-recibido{border-color:var(--brass)}
+.ticket.st-prep{border-color:var(--accent)}
+.ticket.st-listo{border-color:var(--ok);background:var(--ok-soft)}
+.ticket header{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ticket header b{font-family:var(--font-display);font-size:1.15rem}
+.ticket ul{margin:0;padding-left:1.1em}
+.state{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.78rem;font-weight:700}
+.state.nuevo{background:var(--bad-soft);color:var(--bad)}
+.state.recibido{background:var(--brass-soft);color:var(--warn)}
+.state.prep{background:var(--accent-soft);color:var(--accent)}
+.state.listo,.state.servido{background:var(--ok-soft);color:var(--ok)}
+.obs{font-size:.9rem;padding:6px 10px;border-radius:8px;background:var(--warn-soft);color:var(--warn);font-weight:700}
+.receipt{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.86rem;background:var(--surface);border:1px dashed var(--muted);border-radius:6px;padding:14px;line-height:1.45;max-width:380px}
+.receipt .r{display:flex;justify-content:space-between;gap:10px}
+.receipt hr{border:0;border-top:1px dashed var(--muted);margin:6px 0}
+.money{display:flex;flex-wrap:wrap;gap:6px}
+.money button{border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:8px 10px;font:inherit;font-weight:700;cursor:pointer;min-height:44px;font-variant-numeric:tabular-nums}
+.money button.bill{border-color:var(--accent)}
+.pos{background:#1c2320;color:#e9f1ec;border-radius:18px;padding:18px;max-width:340px;display:flex;flex-direction:column;gap:12px;border:3px solid #3a4741}
+.pos .screen{background:#bcd3c4;color:#10201a;border-radius:8px;padding:12px;font-family:ui-monospace,Menlo,Consolas,monospace;min-height:84px;display:flex;flex-direction:column;justify-content:center;gap:4px}
+.pos .screen b{font-size:1.4rem}
+.pos .keys{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.pos .keys button{background:#2e3833;color:#fff;border:0;border-radius:8px;min-height:44px;font:inherit;font-weight:700;cursor:pointer}
+.pos .keys button.ok{background:#2c7a3f}
+.pos .keys button.ko{background:#b3362c}
+.pos .actions{display:flex;flex-direction:column;gap:6px}
+.pos .actions button{background:#2e3833;color:#fff;border:1px solid #4b5a52;border-radius:10px;min-height:46px;font:inherit;font-weight:700;cursor:pointer}
+.kv{display:grid;grid-template-columns:auto auto;gap:4px 16px;justify-content:start;font-variant-numeric:tabular-nums}
+.kv b{text-align:right}
+.members{display:flex;flex-direction:column;gap:8px}
+.member{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:8px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.member select{min-height:44px;padding:6px 8px;width:auto}
+.rotbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 12px;border-radius:10px;background:var(--accent-soft);font-weight:700}
+@media (max-width:760px){
+  nav.phases{grid-template-columns:repeat(5,minmax(0,1fr))}
+  .split{grid-template-columns:minmax(0,1fr)}
+  .tables{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:520px){
+  nav.phases{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .member{grid-template-columns:minmax(0,1fr) auto;}
+}
 </style>
 
 <div class="wrap">
@@ -136,501 +193,570 @@ td.num{font-variant-numeric:tabular-nums;text-align:center}
     <div class="brand">
       <div class="eyebrow">HOTR0208 · Bistró-cafetería</div>
       <h1>Las Moreras</h1>
-      <small>Simulación del servicio de mediodía</small>
+      <small>TPV de simulación · servicio de mediodía</small>
     </div>
     <div class="mode" id="modeSwitch" hidden>
-      <button type="button" id="modeStudent" aria-pressed="true">Alumno</button>
+      <button type="button" id="modeStudent" aria-pressed="true">Simulación</button>
       <button type="button" id="modeTeacher" aria-pressed="false">Docente</button>
     </div>
   </header>
   <main id="app"></main>
 </div>
 <div class="toast" id="toast" role="status" hidden></div>
-
 <script>
 "use strict";
+/* =========================================================
+   Las Moreras · TPV de simulación en equipo (versión 2)
+   Todo el estado vive en este dispositivo (localStorage).
+   ========================================================= */
+
 /* ---------- Contenido ---------- */
 const CARTA = {
   "Bebidas": [
-    {id:"solo", n:"Café solo", p:1.30, a:[]},
-    {id:"cortado", n:"Cortado", p:1.40, a:["Lácteos"]},
-    {id:"conleche", n:"Café con leche", p:1.60, a:["Lácteos"]},
-    {id:"infusion", n:"Infusión", p:1.50, a:[]},
-    {id:"agua", n:"Agua mineral", p:1.50, a:[]},
-    {id:"refresco", n:"Refresco", p:2.20, a:[]},
-    {id:"cana", n:"Caña de cerveza", p:2.00, a:["Gluten"]},
-    {id:"sinalcohol", n:"Cerveza sin alcohol", p:2.20, a:["Gluten"]},
-    {id:"zumo", n:"Zumo de naranja natural", p:2.80, a:[]},
-    {id:"batido", n:"Batido de plátano y fresa", p:3.20, a:["Lácteos"]}
+    {id:"solo", n:"Café solo", p:1.30, a:[], st:"barra"},
+    {id:"cortado", n:"Cortado", p:1.40, a:["Lácteos"], st:"barra"},
+    {id:"conleche", n:"Café con leche", p:1.60, a:["Lácteos"], st:"barra"},
+    {id:"infusion", n:"Infusión", p:1.50, a:[], st:"barra"},
+    {id:"agua", n:"Agua mineral", p:1.50, a:[], st:"barra"},
+    {id:"refresco", n:"Refresco", p:2.20, a:[], st:"barra"},
+    {id:"cana", n:"Caña de cerveza", p:2.00, a:["Gluten"], st:"barra"},
+    {id:"sinalcohol", n:"Cerveza sin alcohol", p:2.20, a:["Gluten"], st:"barra"},
+    {id:"zumo", n:"Zumo de naranja natural", p:2.80, a:[], st:"barra"},
+    {id:"batido", n:"Batido de plátano y fresa", p:3.20, a:["Lácteos"], st:"barra"}
   ],
   "Comidas": [
-    {id:"tostada", n:"Tostada con tomate y aceite", p:2.50, a:["Gluten"]},
-    {id:"tortilla", n:"Pincho de tortilla de patatas", p:3.00, a:["Huevo"]},
-    {id:"bizcocho", n:"Bizcocho casero", p:3.00, a:["Gluten","Huevo","Lácteos"]},
-    {id:"fruta", n:"Fruta de temporada", p:2.50, a:[]},
-    {id:"sandwich", n:"Sándwich mixto", p:4.00, a:["Gluten","Lácteos"]},
-    {id:"ensalada", n:"Ensalada mixta", p:6.50, a:["Huevo","Pescado"]},
-    {id:"quesos", n:"Tabla de quesos con nueces", p:8.00, a:["Lácteos","Frutos de cáscara"]}
+    {id:"tostada", n:"Tostada con tomate y aceite", p:2.50, a:["Gluten"], st:"cocina"},
+    {id:"tortilla", n:"Pincho de tortilla de patatas", p:3.00, a:["Huevo"], st:"cocina"},
+    {id:"bizcocho", n:"Bizcocho casero", p:3.00, a:["Gluten","Huevo","Lácteos"], st:"cocina"},
+    {id:"fruta", n:"Fruta de temporada", p:2.50, a:[], st:"cocina"},
+    {id:"sandwich", n:"Sándwich mixto", p:4.00, a:["Gluten","Lácteos"], st:"cocina"},
+    {id:"ensalada", n:"Ensalada mixta", p:6.50, a:["Huevo","Pescado"], st:"cocina"},
+    {id:"quesos", n:"Tabla de quesos con nueces", p:8.00, a:["Lácteos","Frutos de cáscara"], st:"cocina"}
   ]
 };
 const ITEMS = Object.values(CARTA).flat();
+const item = id => ITEMS.find(i=>i.id===id);
 const ALERGENOS = ["Gluten","Lácteos","Huevo","Pescado","Frutos de cáscara"];
+const MESAS = ["Mesa 1","Mesa 2","Mesa 3","Barra"];
+const ROLES = {sala:"Sala", barra:"Barra", cocina:"Cocina / Pase", clientes:"Clientes / Observadores"};
+const IVA = 0.10;
+const EMPRESA = {nombre:"Las Moreras · Bistró-cafetería", nif:"B00000000 (ficticio)", dir:"Centro de Formación · Monesterio (Badajoz)"};
 
 const FASE_A = [
   {g:"Higiene personal", items:["Llevo el uniforme limpio y completo.","Me he lavado las manos.","Llevo el pelo recogido y no llevo anillos, pulseras ni reloj."]},
-  {g:"Puesto de trabajo y menaje", items:["He desinfectado la barra y las mesas con un producto autorizado.","He revisado que la vajilla, la cristalería y la cubertería estén limpias, secas y sin desperfectos.","Cojo las copas por el pie o la base y los cubiertos por el mango.","He comprobado que la cafetera está encendida y purgada."]},
-  {g:"Montaje de sala y barra", items:["He montado las 3 mesas con mantel o individual, cubiertos, servilleta y copa.","Las sillas están colocadas y limpias.","Hay cartas limpias y comandas preparadas.","He repuesto en barra el azúcar, los removedores, las servilletas y la fruta.","Tengo hielo limpio, la bandeja antideslizante preparada y un paño limpio a mano."]}
+  {g:"Puesto de trabajo y menaje", items:["Hemos desinfectado la barra, las mesas y el pase de cocina con un producto autorizado.","Hemos revisado que la vajilla, la cristalería y la cubertería estén limpias, secas y sin desperfectos.","Cogemos las copas por el pie y los cubiertos por el mango.","La cafetera está encendida y purgada."]},
+  {g:"Montaje de sala y barra", items:["Las 3 mesas están montadas con mantel o individual, cubiertos, servilleta y copa.","Hay cartas limpias y comanderos preparados.","La barra está repuesta: azúcar, removedores, servilletas, hielo limpio y fruta."]},
+  {g:"TPV, caja y datáfono", items:["Hemos comprobado que el TPV funciona y que sala, barra y cocina saben dónde ver sus notas de pedido.","Hemos contado el cambio inicial de la caja y coincide con el que indica el TPV.","Hemos comprobado que el datáfono de prácticas está listo."]}
 ];
-const FASE_B = [
-  ["Acogida","Saludo con cordialidad y miro al cliente a los ojos. En sala lo acompaño a la mesa y en barra lo atiendo enseguida."],
-  ["Comanda","Anoto lo que pide y cómo lo quiere: punto del café, temperatura de la leche, hielo sí o no."],
-  ["Alérgenos","Pregunto si alguien tiene alguna alergia o intolerancia. Si tengo dudas, consulto y no improviso."],
-  ["Confirmación","Repito la comanda en voz alta para comprobar que está bien."],
-  ["Elaboración","Preparo las bebidas y comidas siguiendo la técnica de cada producto."],
-  ["Transporte","Llevo la bandeja con lo más pesado en el centro y sin sobrecargarla."],
-  ["Servicio","Sirvo sin invadir el espacio del cliente y nombro cada producto al dejarlo."],
-  ["Retirada","Retiro el servicio en orden y sin apilar platos delante del cliente."]
-];
-const FASE_D = ["Me he despedido del cliente con cordialidad.","He recogido los restos de las mesas y la barra.","He llevado la vajilla, la cristalería y la cubertería a la zona de lavado.","He limpiado y desinfectado las mesas, las sillas y la barra con productos autorizados.","He limpiado la cafetera, el tirador de cerveza y la batidora.","He separado los residuos en sus contenedores.","He repuesto la barra y la sala para el siguiente turno.","He dejado el puesto ordenado."];
+const FASE_D = ["Nos hemos despedido de los clientes y hemos preguntado si todo ha estado a su gusto.","Hemos recogido y desbarasado mesas y barra.","Hemos limpiado y desinfectado equipos, barra, sala y pase con productos autorizados.","Hemos separado los residuos en sus contenedores.","Hemos repuesto los stocks mínimos para el siguiente turno.","Hemos hecho el arqueo y comprobado los tiques frente a la caja."];
 
 const INCIDENCIAS = [
-  {t:"Consulta de alérgenos", q:"Soy celíaco, ¿qué puedo tomar?",
-   ok:"Consulto la información de alérgenos y le recomiendo productos sin gluten de la carta, como el café, el zumo o la fruta.",
+  {t:"Consulta de alérgenos", f:"Servicio", q:"Soy celíaco, ¿qué puedo tomar?",
+   ok:"Consulto la información de alérgenos y le recomiendo productos sin gluten, como el café, el zumo o la fruta. Lo anoto en la comanda para barra y cocina.",
    bad:["Le digo que la tostada no lleva casi gluten, que no pasa nada.","Le digo que no sé y que elija él mismo de la carta."],
-   why:"Con los alérgenos nunca se improvisa. Hay que consultar la información y ofrecer opciones seguras."},
-  {t:"Copa con marcas", q:"Esta copa tiene marcas de agua.",
+   why:"Con los alérgenos nunca se improvisa. Se consulta la información, se ofrecen opciones seguras y se avisa a barra y cocina en la nota de pedido."},
+  {t:"Copa con marcas", f:"Servicio", q:"Esta copa tiene marcas de agua.",
    ok:"Me disculpo en una frase, retiro la copa al momento y traigo otra limpia, cogida por el pie.",
    bad:["La limpio con el paño delante del cliente y se la devuelvo.","Le explico que viene así del lavavajillas y que está limpia."],
    why:"La pieza defectuosa se retira y se cambia por otra en perfecto estado, sin discutir y sin limpiarla delante del cliente."},
-  {t:"Derrame en la mesa", q:"¡Uy, se me ha caído el refresco!",
+  {t:"Derrame en la mesa", f:"Servicio", q:"¡Uy, se me ha caído el refresco!",
    ok:"Actúo rápido y con discreción: aparto sus cosas, seco la mesa y le repongo el refresco.",
    bad:["Le doy unas servilletas para que lo seque él.","Espero a que termine de comer para limpiarlo todo junto."],
    why:"Un derrame se atiende enseguida, protegiendo las pertenencias del cliente y reponiendo lo que se ha perdido."},
-  {t:"Comanda equivocada", q:"Yo había pedido un cortado, no un café solo.",
-   ok:"Me disculpo, retiro el café, preparo el cortado y repaso la comanda para que no vuelva a pasar.",
+  {t:"Comanda equivocada", f:"Servicio", q:"Yo había pedido un cortado, no un café solo.",
+   ok:"Me disculpo, retiro el café, pido el cortado a barra y repaso la comanda en el TPV para que no vuelva a pasar.",
    bad:["Le añado un poco de leche fría al café solo.","Le digo que en la comanda pone café solo."],
-   why:"Si el error es nuestro, se reconoce, se corrige con el producto correcto y se revisa la comanda."},
-  {t:"Petición especial", q:"¿Tenéis leche sin lactosa?",
-   ok:"Compruebo si hay en barra. Si no hay, se lo digo con amabilidad y le ofrezco otra opción de la carta.",
-   bad:["Le digo que sí y le pongo leche normal, que no se nota.","Le digo que no y me voy sin ofrecer nada."],
-   why:"Nunca se da un producto distinto del que se ha pedido. Si no lo tenemos, se ofrece una alternativa."},
-  {t:"Cerveza con mucha espuma", q:"Me has puesto media caña de espuma.",
-   ok:"Me disculpo y vuelvo a tirar la cerveza con la inclinación correcta y la espuma justa.",
-   bad:["Le quito la espuma con una cuchara y se la devuelvo.","Le explico que la espuma es buena para la cerveza."],
-   why:"Se repite el tirado con la técnica correcta: vaso inclinado, enderezar poco a poco y unos dos dedos de espuma."}
+   why:"Si el error es nuestro, se reconoce, se corrige con el producto correcto y se revisa la nota de pedido."},
+  {t:"Tarjeta denegada", f:"Cobro", q:"¿Cómo que denegada? Pásala otra vez.",
+   ok:"Con discreción le digo que el datáfono no ha aceptado la operación y le ofrezco intentarlo con otra tarjeta o pagar en efectivo.",
+   bad:["Le digo en voz alta que no tiene saldo.","La paso cinco veces seguidas hasta que funcione."],
+   why:"Una tarjeta denegada se gestiona con discreción y ofreciendo otro medio de pago, sin juicios delante de otros clientes."},
+  {t:"Cuenta dividida", f:"Cobro", q:"¿Nos cobras por separado, por favor?",
+   ok:"Divido la cuenta, digo a cada persona su importe, cobro cada parte con su medio de pago y entrego cada comprobante.",
+   bad:["Les digo que solo se puede pagar todo junto.","Cobro todo a una persona y que ellos se apañen."],
+   why:"Dividir la cuenta es habitual. Hay que calcular bien cada parte y comprobar que la suma coincide con el total."},
+  {t:"Factura completa", f:"Cobro", q:"Necesito factura a nombre de mi empresa.",
+   ok:"Le pido el nombre o razón social, el NIF y el domicilio, emito la factura completa y le pido que compruebe los datos.",
+   bad:["Le doy el tique normal y le digo que vale igual.","Le digo que las facturas solo se hacen otro día."],
+   why:"Si el cliente la pide, se emite factura completa con sus datos fiscales. El tique o factura simplificada no los incluye."},
+  {t:"Cambio incorrecto", f:"Cobro", q:"Me has dado 5 € de menos.",
+   ok:"Reviso con calma el tique y el importe entregado, cuento el cambio delante del cliente y, si me he equivocado, lo corrijo y me disculpo.",
+   bad:["Le digo que es imposible porque yo no me equivoco.","Le doy 5 € sin comprobar nada."],
+   why:"El cambio se cuenta en voz alta delante del cliente. Ante una reclamación se comprueba con calma antes de corregir."},
+  {t:"Pago mixto", f:"Cobro", q:"Te pago 10 € en efectivo y el resto con tarjeta.",
+   ok:"Cobro primero los 10 € en efectivo, paso el resto por el datáfono y compruebo que la suma de los dos pagos es el total del tique.",
+   bad:["Le digo que tiene que pagar todo de una forma.","Paso el total completo por la tarjeta y le devuelvo los 10 €."],
+   why:"El TPV permite combinar medios de pago. Lo importante es que los dos importes sumen exactamente el total."},
+  {t:"Plato con retraso", f:"Comandas", q:"Llevamos un rato esperando la tostada.",
+   ok:"Me disculpo, miro en el TPV en qué estado está la nota de pedido, lo consulto con cocina y le digo al cliente cuánto falta.",
+   bad:["Le digo que la cocina va lenta y que no es culpa mía.","Le digo que ya sale sin mirar nada."],
+   why:"El estado de la nota de pedido permite informar al cliente con datos reales. Sala y cocina deben comunicarse."}
 ];
-
-const CRITERIOS = [
-  {k:"higiene", n:"Higiene y manipulación", d:["Omite normas básicas de higiene o manipula mal el menaje, los alimentos o las superficies.","Aplica las normas de higiene y manipulación con alguna indicación puntual.","Mantiene siempre la higiene, la manipulación segura y el orden."]},
-  {k:"servicio", n:"Preparación y servicio", d:["Tiene dificultades con el montaje, la bandeja o la elaboración.","Monta, prepara y sirve correctamente y en tiempos aceptables.","Trabaja con fluidez y precisión, con buena postura y manejo seguro de la bandeja."]},
-  {k:"atencion", n:"Atención y comunicación", d:["Trato distante, poca escucha o responde sobre alérgenos o comandas sin confirmar.","Trato correcto, escucha activa y consulta las dudas de alérgenos o comanda.","Trato cercano y profesional, confirma las comandas y resuelve las incidencias con calma."]},
-  {k:"postservicio", n:"Postservicio y orden", d:["Deja la barra, la sala o los residuos sin terminar o desordenados.","Recoge, limpia y repone el puesto siguiendo las pautas.","Deja barra y sala limpias, desinfectadas y listas para el siguiente turno."]}
-];
-const NIVELES = ["","En proceso","Adecuado","Destacado"];
 
 /* ---------- Utilidades ---------- */
 const $ = (s, r=document) => r.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const eur = n => n.toFixed(2).replace(".", ",") + " €";
+const r2 = n => Math.round(n*100)/100;
+const eur = n => r2(n).toFixed(2).replace(".", ",") + " €";
+const num = s => { const v = parseFloat(String(s).replace(",", ".")); return isNaN(v) ? NaN : r2(v); };
 const today = () => new Date().toISOString().slice(0,10);
+const hhmm = t => new Date(t).toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"});
+const mins = t => Math.max(0, Math.round((Date.now()-t)/60000));
 const fmtDate = s => { const [y,m,d] = String(s).split("-"); return d ? `${d}/${m}/${y}` : s; };
 function toast(msg){ const t=$("#toast"); t.textContent=msg; t.hidden=false; clearTimeout(toast.h); toast.h=setTimeout(()=>t.hidden=true,2600); }
 function load(key, fallback){ try{ const v=localStorage.getItem(key); return v?JSON.parse(v):fallback; }catch(e){ return fallback; } }
 function save(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
 function shuffle(a){ const b=a.slice(); for(let i=b.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [b[i],b[j]]=[b[j],b[i]]; } return b; }
+const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 
-/* ---------- Estado del alumno (solo en su navegador) ---------- */
-const FRESH = () => ({name:"", step:0, a:[], b:[], d:[], orders:[], inc:{}, incOrder:shuffle(INCIDENCIAS.map((_,i)=>i)), incPos:0});
-let S = Object.assign(FRESH(), load("mirador-alumno", {}));
-const persist = () => save("mirador-alumno", S);
-let draft = {mesa:"Mesa 1", lines:{}, nota:"", stage:"menu", asked:null, allergies:[]};
-
+/* ---------- Estado del turno (este dispositivo) ---------- */
+const ROLE_ORDER = ["sala","barra","cocina","clientes"];
+const autoRole = (gi, rot) => ROLE_ORDER[(gi + rot - 1) % 4];
+const freshGroups = () => [1,2,3,4].map((n,i)=>({id:"g"+n, name:"Grupo "+n, members:[], roles:{1:autoRole(i,1),2:autoRole(i,2),3:autoRole(i,3),4:autoRole(i,4)}}));
+const FRESH = () => ({v:2, step:0, team:"", groups:freshGroups(), nRot:2, rot:1, caja:100, a:[], d:[],
+  orders:[], nOrder:0, tickets:[], nTicket:0, cashErr:0, cardDenied:0,
+  inc:{}, incOrder:shuffle(INCIDENCIAS.map((_,i)=>i)), incPos:0, arqueo:null, fecha:today()});
+let S = Object.assign(FRESH(), load("moreras-tpv", {}));
+if(S.v!==2) S = FRESH();
+const persist = () => save("moreras-tpv", S);
+const blankDraft = mesa => ({mesa, lines:{}, notas:{}, obs:"", stage:"menu", asked:null, allergies:[]});
+let draft = blankDraft("Mesa 1");
+let pay = null; // estado del cobro en curso
 let mode = "alumno";
-let teacher = {tab:"evaluar", students:[], evals:[], filter:"", form:null, confirmDel:null};
-let store = null; // db o almacenamiento local
-let downloads = null;
 
-const STEPS = [["Inicio","·"],["Preparar","A"],["Servir","B"],["Incidencias","C"],["Cerrar","D"],["Resumen","✓"]];
+const STEPS = [
+  ["equipo","Equipo","·"],["a","Preparar","A"],["sala","Sala","B"],["barra","Barra","B"],["cocina","Cocina","B"],
+  ["caja","Caja","C"],["inc","Incidencias","C"],["d","Cierre","D"],["resumen","Resumen","✓"]];
 
+/* ---------- Derivados ---------- */
+const lineStation = l => item(l.pid).st;
+function orderStations(o){ return [...new Set(o.lines.map(lineStation))]; }
+function openOrders(mesa){ return S.orders.filter(o=>o.mesa===mesa && !o.paid); }
+function mesaTotal(mesa){ return r2(openOrders(mesa).reduce((s,o)=>s+o.lines.reduce((t,l)=>t+item(l.pid).p*l.q,0),0)); }
+function pending(st){ return S.orders.filter(o=>o.st[st] && o.st[st]!=="listo" && o.st[st]!=="servido").length; }
+function aggLines(orders){
+  const m = {};
+  orders.forEach(o=>o.lines.forEach(l=>{ m[l.pid]=(m[l.pid]||0)+l.q; }));
+  return Object.entries(m).map(([pid,q])=>({pid,q,n:item(pid).n,p:item(pid).p,imp:r2(item(pid).p*q)}));
+}
+function ivaSplit(total){ const base = r2(total/(1+IVA)); return {base, iva:r2(total-base), total:r2(total)}; }
+function rolesOf(rot){ const by={}; S.groups.forEach(g=>{ const r=g.roles[rot]; if(r) (by[r]=by[r]||[]).push(g.name); }); return by; }
+const groupsReady = () => S.groups.every(g=>g.members.length>0);
+
+/* ---------- Render principal ---------- */
 function render(){
-  $("#modeStudent").setAttribute("aria-pressed", mode==="alumno");
-  $("#modeTeacher").setAttribute("aria-pressed", mode==="docente");
-  $("#app").innerHTML = mode==="alumno" ? renderStudent() : renderTeacher();
+  const ms=$("#modeStudent"), mt=$("#modeTeacher");
+  if(ms){ ms.setAttribute("aria-pressed", mode==="alumno"); mt.setAttribute("aria-pressed", mode==="docente"); }
+  if(mode==="docente" && typeof renderTeacher==="function"){ $("#app").innerHTML = renderTeacher(); return; }
+  const badges = {barra:pending("barra"), cocina:pending("cocina")};
+  const nav = `<nav class="phases" aria-label="Pantallas del TPV">${STEPS.map(([k,n,l],i)=>`<button type="button" data-go="${i}" ${S.step===i?'aria-current="step"':''}><b>${l}</b>${n}${badges[k]?`<span class="badge" aria-label="${badges[k]} pendientes">${badges[k]}</span>`:''}</button>`).join("")}</nav>`;
+  const rb = groupsReady() ? `<div class="rotbar">Rotación ${S.rot} de ${S.nRot}<span class="muted" style="font-weight:400">${Object.entries(rolesOf(S.rot)).map(([r,n])=>`${ROLES[r]}: ${n.map(esc).join(", ")}`).join(" · ")}</span></div>` : "";
+  const views = {equipo:vEquipo, a:vFaseA, sala:vSala, barra:()=>vStation("barra"), cocina:()=>vStation("cocina"), caja:vCaja, inc:vInc, d:vCierre, resumen:vResumen};
+  $("#app").innerHTML = nav + `<section class="stack">${S.step>0?rb:""}${views[STEPS[S.step][0]]()}</section>`;
+}
+function go(k){ S.step = STEPS.findIndex(s=>s[0]===k); persist(); render(); window.scrollTo({top:0}); }
+
+/* ---------- Equipo ---------- */
+function vEquipo(){
+  const rots = Array.from({length:S.nRot},(_,i)=>i+1);
+  return `<div class="card stack">
+    <div><div class="eyebrow">Antes de empezar</div><h2>Grupos y rotaciones</h2></div>
+    <p>Este dispositivo es el TPV de Las Moreras. Los 4 grupos rotan por sala, barra, cocina y clientes, y cada puesto usa su pantalla del TPV.</p>
+    <label class="field"><span>Nombre de la sesión (opcional)</span><input type="text" id="teamName" value="${esc(S.team)}" placeholder="Ej.: Simulación 27 de noviembre"></label>
+    <div class="field"><span>¿Cuántas rotaciones vais a hacer?</span><div class="chips">${[1,2,3,4].map(n=>`<button type="button" class="chip" data-nrot="${n}" aria-pressed="${S.nRot===n}">${n}</button>`).join("")}</div></div>
+    <div class="stack" style="gap:12px">${S.groups.map(g=>`<div class="card stack" style="padding:14px">
+      <div class="row" style="justify-content:space-between"><h3>${esc(g.name)}</h3><span class="muted">${g.members.length} persona${g.members.length===1?'':'s'}</span></div>
+      ${g.members.length?`<div class="chips">${g.members.map((m,i)=>`<button type="button" class="chip" data-delmember="${g.id}" data-i="${i}" aria-label="Quitar a ${esc(m)}">${esc(m)} ✕</button>`).join("")}</div>`:''}
+      <div class="row"><input type="text" data-newmember="${g.id}" placeholder="Nombre y apellido" style="flex:1;min-width:0"><button type="button" class="btn small" data-addmember="${g.id}">Añadir</button></div>
+      <div class="row">${rots.map(r=>`<label class="row" style="gap:6px"><span class="muted">Rotación ${r}</span><select data-grole="${g.id}" data-rot="${r}" style="width:auto;min-height:44px;padding:6px 8px">${ROLE_ORDER.map(k=>`<option value="${k}" ${g.roles[r]===k?'selected':''}>${ROLES[k]}</option>`).join("")}</select></label>`).join("")}</div>
+    </div>`).join("")}</div>
+    ${rots.some(r=>new Set(S.groups.map(g=>g.roles[r])).size<4)?`<div class="note bad">En alguna rotación hay dos grupos en el mismo puesto. Revisadlo si no es intencionado.</div>`:''}
+    <div class="field"><span>¿En qué rotación estáis ahora?</span><div class="chips">${rots.map(r=>`<button type="button" class="chip" data-setrot="${r}" aria-pressed="${S.rot===r}">Rotación ${r}</button>`).join("")}</div></div>
+    <label class="field"><span>Cambio inicial en caja (€)</span><input type="text" inputmode="decimal" id="cajaIni" value="${String(S.caja).replace(".",",")}"></label>
+  </div>
+  <div class="next"><span></span><button type="button" class="btn" data-goto="a" ${groupsReady()?'':'disabled'}>Empezar el turno</button></div>`;
 }
 
-/* ---------- Modo alumno ---------- */
-function phaseDone(i){
-  if(i===0) return !!S.name;
-  if(i===1) return S.a.length===FASE_A.reduce((n,g)=>n+g.items.length,0);
-  if(i===2) return S.orders.length>0 && S.b.length===FASE_B.length;
-  if(i===3) return Object.keys(S.inc).length>=3;
-  if(i===4) return S.d.length===FASE_D.length;
-  return false;
-}
-function renderStudent(){
-  const nav = `<nav class="phases" aria-label="Fases de la simulación">${STEPS.map(([n,l],i)=>`<button type="button" data-go="${i}" ${S.step===i?'aria-current="step"':''} class="${phaseDone(i)?'done':''}"><b>${l}</b>${n}</button>`).join("")}</nav>`;
-  const views = [vInicio, vFaseA, vFaseB, vFaseC, vFaseD, vResumen];
-  return nav + `<section class="stack">${views[S.step]()}</section>`;
-}
-function nextBar(prev, next, label){
-  return `<div class="next">${prev!==null?`<button type="button" class="btn ghost" data-go="${prev}">Volver</button>`:'<span></span>'}${next!==null?`<button type="button" class="btn" data-go="${next}">${label||"Siguiente fase"}</button>`:''}</div>`;
-}
-function vInicio(){
-  return `<div class="card stack">
-    <h2>Bienvenida al turno de mediodía</h2>
-    <p>Hoy trabajas como ayudante de camarero y de bar en Las Moreras: una barra y tres mesas de dos personas. Vas a recorrer las cuatro fases del servicio a tu ritmo, sin prisas.</p>
-    <ol class="stack" style="padding-left:1.2em;margin:0">
-      <li><b>Preparar.</b> Higiene, menaje y montaje de sala y barra.</li>
-      <li><b>Servir.</b> Acoger al cliente, tomar la comanda y servir.</li>
-      <li><b>Incidencias.</b> Qué hacer cuando algo no sale como estaba previsto.</li>
-      <li><b>Cerrar.</b> Recoger, limpiar y dejarlo listo para el siguiente turno.</li>
-    </ol>
-    <label class="field"><span>¿Cómo te llamas?</span><input type="text" id="stuName" autocomplete="given-name" value="${esc(S.name)}" placeholder="Tu nombre"></label>
-    <p class="muted">Lo que marques se guarda solo en este móvil u ordenador. Al final verás un resumen para enseñárselo a tu docente.</p>
-  </div>${nextBar(null,1,"Empezar")}`;
-}
+/* ---------- Fase A ---------- */
 function checklist(list, sel, key){
-  return `<ul class="checklist">${list.map((t,i)=>`<li><label class="check"><input type="checkbox" data-check="${key}" value="${esc(t)}" ${sel.includes(t)?'checked':''}><span>${esc(t)}</span></label></li>`).join("")}</ul>`;
+  return `<ul class="checklist">${list.map(t=>`<li><label class="check"><input type="checkbox" data-check="${key}" value="${esc(t)}" ${sel.includes(t)?'checked':''}><span>${esc(t)}</span></label></li>`).join("")}</ul>`;
 }
-function bar(n,total){ return `<div class="row" style="justify-content:space-between"><span class="muted">${n} de ${total} hechos</span></div><div class="progress" aria-hidden="true"><span style="width:${total?Math.round(n/total*100):0}%"></span></div>`; }
+function bar(n,total){ return `<span class="muted">${n} de ${total} hechos</span><div class="progress" aria-hidden="true"><span style="width:${total?Math.round(n/total*100):0}%"></span></div>`; }
 function vFaseA(){
   const total = FASE_A.reduce((n,g)=>n+g.items.length,0);
-  return `<div class="stack"><div><div class="eyebrow">Fase A</div><h2>Preservicio, higiene y preparación</h2></div>
-    <p>Marca cada punto cuando lo hayas hecho de verdad en el aula-taller.</p>${bar(S.a.length,total)}
+  return `<div><div class="eyebrow">Fase A</div><h2>Preservicio, higiene y puesta a punto</h2></div>
+    <p>Marcad cada punto cuando lo hayáis hecho de verdad en el aula-taller. El cambio inicial de la caja es <b>${eur(S.caja)}</b>.</p>${bar(S.a.length,total)}
     ${FASE_A.map(g=>`<div class="stack" style="gap:8px"><h3>${g.g}</h3>${checklist(g.items,S.a,"a")}</div>`).join("")}
-  </div>${nextBar(0,2)}`;
+    <div class="next"><button type="button" class="btn ghost" data-goto="equipo">Volver</button><button type="button" class="btn" data-goto="sala">Abrir la sala</button></div>`;
 }
+
+/* ---------- Sala (toma de comandas) ---------- */
 function allergenTags(a){ return a.length? a.map(x=>`<span class="tag">${x}</span>`).join("") : `<span class="tag none">Sin alérgenos</span>`; }
-function vFaseB(){
+function stateLabel(s){ return {nuevo:"Enviada",recibido:"Recibida",prep:"En preparación",listo:"Lista para pase",servido:"Servida"}[s]||s; }
+function vSala(){
+  const tables = `<div class="tables">${MESAS.map(m=>{ const o=openOrders(m); const t=mesaTotal(m);
+    return `<button type="button" class="table-btn ${o.length?'busy':''}" data-mesa="${m}" aria-pressed="${draft.mesa===m}"><b>${m}</b><small>${o.length?`${o.length} comanda${o.length>1?'s':''} · ${eur(t)}`:'Libre'}</small></button>`; }).join("")}</div>`;
   const lines = Object.entries(draft.lines).filter(([,q])=>q>0);
-  const total = lines.reduce((s,[id,q])=>s+ITEMS.find(i=>i.id===id).p*q,0);
-  let orderBox;
+  const total = lines.reduce((s,[id,q])=>s+item(id).p*q,0);
+  let box;
   if(draft.stage==="menu"){
-    orderBox = `<div class="order stack" id="orderBox">
-      <div class="row" style="justify-content:space-between"><h3>Comanda</h3>
-        <select id="mesa" aria-label="Mesa" style="width:auto">${["Mesa 1","Mesa 2","Mesa 3","Barra"].map(m=>`<option ${draft.mesa===m?'selected':''}>${m}</option>`).join("")}</select></div>
-      ${lines.length? lines.map(([id,q])=>{const it=ITEMS.find(i=>i.id===id); return `<div class="order-line"><div class="qty"><button type="button" data-qty="${id}" data-d="-1" aria-label="Quitar uno">−</button><b>${q}</b><button type="button" data-qty="${id}" data-d="1" aria-label="Añadir uno">+</button></div><div>${esc(it.n)}<div class="tags">${it.a.map(x=>`<span class="tag">${x}</span>`).join("")}</div></div><span class="price">${eur(it.p*q)}</span></div>`}).join("") : `<p class="muted">Toca + en la carta para añadir lo que pide el cliente.</p>`}
-      <label class="field"><span>¿Cómo lo quiere?</span><input type="text" id="nota" value="${esc(draft.nota)}" placeholder="Ej.: café muy caliente, zumo sin hielo"></label>
+    box = `<div class="order stack" id="orderBox">
+      <h3>Nueva comanda · ${esc(draft.mesa)}</h3>
+      ${lines.length? lines.map(([id,q])=>{const it=item(id); return `<div class="order-line"><div class="qty"><button type="button" data-qty="${id}" data-d="-1" aria-label="Quitar uno">−</button><b>${q}</b><button type="button" data-qty="${id}" data-d="1" aria-label="Añadir uno">+</button></div><div>${esc(it.n)} <span class="muted" style="font-size:.8rem">→ ${it.st==="barra"?"Barra":"Cocina"}</span><input type="text" data-nota="${id}" value="${esc(draft.notas[id]||"")}" placeholder="Observación: punto, temperatura…" style="min-height:40px;margin-top:4px;font-size:.9rem;padding:6px 10px"></div><span class="price">${eur(it.p*q)}</span></div>`}).join("") : `<p class="muted">Toca + en la carta para añadir lo que pide el cliente.</p>`}
       <div class="row" style="justify-content:space-between"><b>Total: ${eur(total)}</b><button type="button" class="btn" id="toAllergens" ${lines.length?'':'disabled'}>Confirmar comanda</button></div>
     </div>`;
   } else if(draft.stage==="ask"){
-    orderBox = `<div class="order stack" id="orderBox"><h3>Antes de confirmar</h3>
-      <p class="quote">¿Has preguntado si alguien tiene alergias o intolerancias?</p>
+    box = `<div class="order stack" id="orderBox"><h3>Antes de enviar</h3>
+      <p class="quote">¿Habéis preguntado si alguien tiene alergias o intolerancias?</p>
       <div class="options">
-        <button type="button" class="option" data-ask="no-alergias">Sí, he preguntado y nadie tiene alergias.</button>
-        <button type="button" class="option" data-ask="alergias">Sí, he preguntado y hay alguna alergia.</button>
-        <button type="button" class="option" data-ask="no">No he preguntado.</button>
+        <button type="button" class="option" data-ask="no-alergias">Sí, y nadie tiene alergias.</button>
+        <button type="button" class="option" data-ask="alergias">Sí, y hay alguna alergia.</button>
+        <button type="button" class="option" data-ask="no">No hemos preguntado.</button>
       </div></div>`;
   } else if(draft.stage==="which"){
-    orderBox = `<div class="order stack" id="orderBox"><h3>¿Qué alergia tiene el cliente?</h3>
+    box = `<div class="order stack" id="orderBox"><h3>¿Qué alergia tiene el cliente?</h3>
       <div class="chips">${ALERGENOS.map(a=>`<button type="button" class="chip" data-allergy="${a}" aria-pressed="${draft.allergies.includes(a)}">${a}</button>`).join("")}</div>
       <button type="button" class="btn" id="checkAllergy" ${draft.allergies.length?'':'disabled'}>Revisar la comanda</button></div>`;
   } else {
-    const risky = lines.map(([id])=>ITEMS.find(i=>i.id===id)).filter(it=>it.a.some(a=>draft.allergies.includes(a)));
+    const risky = lines.map(([id])=>item(id)).filter(it=>it.a.some(a=>draft.allergies.includes(a)));
     let msg;
-    if(draft.asked==="no") msg = `<div class="note bad"><b>Pregunta siempre por las alergias antes de confirmar.</b> Vuelve con el cliente, pregúntale y repite la comanda en voz alta.</div>`;
-    else if(risky.length) msg = `<div class="note bad"><b>¡Cuidado!</b> ${risky.map(r=>esc(r.n)).join(", ")} ${risky.length>1?'llevan':'lleva'} ${draft.allergies.join(", ").toLowerCase()}. Explícaselo al cliente y ofrécele otra opción de la carta.</div>`;
-    else if(draft.asked==="alergias") msg = `<div class="note ok"><b>Bien hecho.</b> Nada de la comanda lleva ${draft.allergies.join(", ").toLowerCase()}. Avisa también en barra o cocina para evitar contaminaciones.</div>`;
-    else msg = `<div class="note ok"><b>Bien hecho.</b> Has preguntado por las alergias. Repite la comanda en voz alta y pásala a barra.</div>`;
-    orderBox = `<div class="order stack" id="orderBox"><h3>Comanda de ${esc(draft.mesa)}</h3>${msg}
-      <div class="row">${risky.length||draft.asked==="no"?`<button type="button" class="btn ghost" id="backToMenu">Corregir la comanda</button>`:''}<button type="button" class="btn" id="sendOrder">Pasar la comanda a barra</button></div></div>`;
+    if(draft.asked==="no") msg = `<div class="note bad"><b>Preguntad siempre por las alergias antes de enviar la comanda.</b> Volved con el cliente y repetid la comanda en voz alta.</div>`;
+    else if(risky.length) msg = `<div class="note bad"><b>¡Cuidado!</b> ${risky.map(r=>esc(r.n)).join(", ")} ${risky.length>1?'llevan':'lleva'} ${draft.allergies.join(", ").toLowerCase()}. Explicádselo al cliente y ofrecedle otra opción.</div>`;
+    else if(draft.asked==="alergias") msg = `<div class="note ok"><b>Bien hecho.</b> Nada lleva ${draft.allergies.join(", ").toLowerCase()}. La alergia irá marcada en la nota de pedido de barra y cocina.</div>`;
+    else msg = `<div class="note ok"><b>Bien hecho.</b> Repetid la comanda en voz alta y enviadla.</div>`;
+    box = `<div class="order stack" id="orderBox"><h3>Comanda de ${esc(draft.mesa)}</h3>${msg}
+      <label class="field"><span>Observaciones generales para barra y cocina</span><input type="text" id="obs" value="${esc(draft.obs)}" placeholder="Ej.: servir primero las bebidas"></label>
+      <div class="row">${risky.length||draft.asked==="no"?`<button type="button" class="btn ghost" id="backToMenu">Corregir la comanda</button>`:''}<button type="button" class="btn" id="sendOrder">Enviar a barra y cocina</button></div></div>`;
   }
   const menu = Object.entries(CARTA).map(([g,list])=>`<div class="menu-group"><h3>${g}</h3>${list.map(it=>`<div class="item"><div>${esc(it.n)}<div class="tags">${allergenTags(it.a)}</div></div><span class="price">${eur(it.p)}</span><button type="button" class="add" data-add="${it.id}" aria-label="Añadir ${esc(it.n)}" ${draft.stage!=="menu"?'disabled':''}>+</button></div>`).join("")}</div>`).join("");
-  const done = S.orders.length ? `<div class="note ok">Comandas pasadas a barra: <b>${S.orders.length}</b>. Puedes tomar otra para otra mesa.</div>` : "";
-  return `<div class="stack"><div><div class="eyebrow">Fase B</div><h2>Recepción, comanda y servicio</h2></div>
-    <p>Un compañero hace de cliente. Toma su comanda con la carta de Las Moreras.</p>
-    ${done}${orderBox}
-    <div class="stack" style="gap:12px">${menu}</div>
-    <h3>Pasos del servicio</h3><p class="muted">Marca cada paso cuando lo hayas hecho con el cliente.</p>${bar(S.b.length,FASE_B.length)}
-    <ul class="checklist">${FASE_B.map(([t,d],i)=>`<li><label class="check"><input type="checkbox" data-check="b" value="${esc(t)}" ${S.b.includes(t)?'checked':''}><span><b>${i+1}. ${t}.</b> ${esc(d)}</span></label></li>`).join("")}</ul>
-  </div>${nextBar(1,3)}`;
-}
-function vFaseC(){
-  const answered = Object.keys(S.inc).length;
-  if(S.incPos>=INCIDENCIAS.length){
-    return `<div class="stack"><div><div class="eyebrow">Fase C</div><h2>Resolución de incidencias</h2></div>
-      <div class="note ok">Has visto las ${INCIDENCIAS.length} incidencias. Has acertado ${Object.values(S.inc).filter(Boolean).length} de ${answered}.</div>
-      <button type="button" class="btn ghost" id="incRestart">Repetir las incidencias</button></div>${nextBar(2,4)}`;
-  }
-  const idx = S.incOrder[S.incPos], inc = INCIDENCIAS[idx];
-  const opts = S._opts && S._opts.idx===idx ? S._opts.list : (S._opts={idx, list:shuffle([{t:inc.ok,c:true},...inc.bad.map(t=>({t,c:false}))])}).list;
-  const pick = S._pick;
-  return `<div class="stack"><div><div class="eyebrow">Fase C · Incidencia ${S.incPos+1} de ${INCIDENCIAS.length}</div><h2>${esc(inc.t)}</h2></div>
-    <div class="card stack"><p class="muted">El cliente te dice:</p><p class="quote">«${esc(inc.q)}»</p></div>
-    <p><b>¿Qué haces?</b></p>
-    <div class="options">${opts.map((o,i)=>`<button type="button" class="option ${pick!=null?(o.c?'right':(pick===i?'wrong':'')):''}" data-opt="${i}" ${pick!=null?'disabled':''}>${esc(o.t)}</button>`).join("")}</div>
-    ${pick!=null?`<div class="note ${opts[pick].c?'ok':'bad'}"><b>${opts[pick].c?'Correcto.':'Esta no es la mejor respuesta.'}</b> ${esc(inc.why)}</div>
-    <div class="row"><button type="button" class="btn" id="incNext">${S.incPos+1<INCIDENCIAS.length?'Siguiente incidencia':'Ver resultado'}</button></div>`:''}
-  </div>${nextBar(2,4)}`;
-}
-function vFaseD(){
-  return `<div class="stack"><div><div class="eyebrow">Fase D</div><h2>Postservicio y cierre</h2></div>
-    <p>Marca cada punto cuando lo hayas hecho.</p>${bar(S.d.length,FASE_D.length)}${checklist(FASE_D,S.d,"d")}</div>${nextBar(3,5,"Ver mi resumen")}`;
-}
-function vResumen(){
-  const totalA = FASE_A.reduce((n,g)=>n+g.items.length,0);
-  const asked = S.orders.filter(o=>o.asked!=="no").length;
-  const incOk = Object.values(S.inc).filter(Boolean).length, incN = Object.keys(S.inc).length;
-  return `<div class="stack"><div><div class="eyebrow">Resumen</div><h2>${S.name?esc(S.name)+", este es tu turno":"Tu turno"}</h2></div>
-    <div class="stats">
-      <div class="stat"><span class="muted">Fase A · Preparar</span><b>${S.a.length}/${totalA}</b></div>
-      <div class="stat"><span class="muted">Comandas tomadas</span><b>${S.orders.length}</b></div>
-      <div class="stat"><span class="muted">Preguntaste por alérgenos</span><b>${asked}/${S.orders.length}</b></div>
-      <div class="stat"><span class="muted">Fase B · Pasos</span><b>${S.b.length}/${FASE_B.length}</b></div>
-      <div class="stat"><span class="muted">Incidencias acertadas</span><b>${incOk}/${incN}</b></div>
-      <div class="stat"><span class="muted">Fase D · Cerrar</span><b>${S.d.length}/${FASE_D.length}</b></div>
-    </div>
-    <div class="card stack">
-      <h3>Tu código de resultados</h3>
-      ${S.name?`<p>Cópialo y envíaselo a tu docente por WhatsApp o por correo. Con este código, tus resultados le llegan sin tener que apuntarlos.</p>
-      <textarea id="codeBox" readonly rows="3" style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.85rem;min-height:0">${esc(makeCode())}</textarea>
-      <div class="row"><button type="button" class="btn" id="copyCode">Copiar código</button></div>`
-      :`<div class="note bad">Para generar tu código, escribe tu nombre en <b>Inicio</b>.</div><button type="button" class="btn ghost" data-go="0">Ir a Inicio</button>`}
-    </div>
-    <div id="resetBox" class="confirm-row"><button type="button" class="btn ghost" id="resetAsk">Empezar de nuevo</button></div>
-  </div>${nextBar(4,null)}`;
+  const mesaOrders = openOrders(draft.mesa);
+  const status = mesaOrders.length ? `<div class="card stack"><h3>Seguimiento de ${esc(draft.mesa)}</h3>${mesaOrders.map(o=>`<div class="stack" style="gap:6px"><div class="row"><b>Comanda nº ${o.n}</b><span class="muted">${hhmm(o.t)}</span></div>
+      ${orderStations(o).map(st=>`<div class="row" style="justify-content:space-between"><span>${st==="barra"?"Barra":"Cocina"}: ${o.lines.filter(l=>lineStation(l)===st).map(l=>`${l.q}× ${esc(item(l.pid).n)}`).join(", ")}</span><span class="row"><span class="state ${o.st[st]}">${stateLabel(o.st[st])}</span>${o.st[st]==="listo"?`<button type="button" class="btn small" data-served="${o.id}" data-st="${st}">Recoger y servir</button>`:''}</span></div>`).join("")}</div>`).join("<hr style='border:0;border-top:1px solid var(--line);width:100%'>")}
+      <button type="button" class="btn ghost" data-goto="caja">El cliente pide la cuenta</button></div>` : "";
+  return `<div><div class="eyebrow">Fase B · Equipo de sala</div><h2>Toma de comandas</h2></div>
+    <p>Elegid la mesa, tomad la comanda y enviadla. Las bebidas van a barra y las comidas a cocina.</p>
+    ${tables}
+    <div class="split"><div class="stack">${box}${status}</div><div class="stack" style="gap:12px">${menu}</div></div>`;
 }
 
-/* ---------- Código de resultados ---------- */
+/* ---------- Barra y cocina (notas de pedido) ---------- */
+function vStation(st){
+  const list = S.orders.filter(o=>o.st[st] && o.st[st]!=="servido").sort((a,b)=>a.t-b.t);
+  const next = {nuevo:["recibido","Marcar recibida"], recibido:["prep","Empezar a preparar"], prep:["listo","Lista para pase"]};
+  const done = S.orders.filter(o=>o.st[st]==="servido").length;
+  return `<div><div class="eyebrow">Fase B · Equipo de ${st==="barra"?"barra":"cocina / pase"}</div><h2>Notas de pedido de ${st==="barra"?"barra":"cocina"}</h2></div>
+    <p>Atended primero las más antiguas. Marcad cada estado según avancéis para que sala sepa cuándo recoger.</p>
+    ${list.length?`<div class="queue">${list.map(o=>{ const ls=o.lines.filter(l=>lineStation(l)===st); const s=o.st[st];
+      return `<article class="ticket st-${s}"><header><b>${esc(o.mesa)}</b><span class="muted">Nº ${o.n} · ${hhmm(o.t)} · hace ${mins(o.t)} min</span></header>
+        <ul>${ls.map(l=>`<li><b>${l.q}×</b> ${esc(item(l.pid).n)}${l.nota?` <i>(${esc(l.nota)})</i>`:''}</li>`).join("")}</ul>
+        ${o.allergies&&o.allergies.length?`<div class="obs">Alergia: ${o.allergies.map(esc).join(", ")}</div>`:''}
+        ${o.obs?`<div class="muted">Obs.: ${esc(o.obs)}</div>`:''}
+        <div class="row" style="justify-content:space-between"><span class="state ${s}">${stateLabel(s)}</span>${next[s]?`<button type="button" class="btn small" data-adv="${o.id}" data-st="${st}" data-to="${next[s][0]}">${next[s][1]}</button>`:'<span class="muted">Esperando a sala</span>'}</div>
+      </article>`; }).join("")}</div>`:`<div class="card"><p>No hay notas de pedido pendientes. ${done?`Ya habéis servido ${done}.`:'Cuando sala envíe una comanda aparecerá aquí.'}</p></div>`}`;
+}
+
+/* ---------- Caja (facturación y cobro) ---------- */
+function startPay(mesa){
+  const orders = openOrders(mesa); if(!orders.length) return;
+  pay = {mesa, total:mesaTotal(mesa), tipo:"simplificada", cliente:{nombre:"",nif:"",dir:""}, checked:false, pagos:[], method:null, cashGiven:0, cashAmt:"", changeIn:"", changeOk:null, pos:null, partes:1, forceDeny:false};
+}
+const paid = () => r2(pay.pagos.reduce((s,p)=>s+p.importe,0));
+const left = () => r2(pay.total - paid());
+function receipt(tk){
+  const ivs = ivaSplit(tk.total);
+  return `<div class="receipt" aria-label="Tique">
+    <div style="text-align:center"><b>${esc(EMPRESA.nombre)}</b><br>NIF ${esc(EMPRESA.nif)}<br>${esc(EMPRESA.dir)}</div><hr>
+    <div class="r"><span>${tk.tipo==="completa"?"FACTURA":"FACTURA SIMPLIFICADA"} Nº ${esc(tk.num)}</span></div>
+    <div class="r"><span>${fmtDate(tk.fecha)} ${tk.hora}</span><span>${esc(tk.mesa)}</span></div>
+    ${tk.tipo==="completa"?`<hr><div>Cliente: ${esc(tk.cliente.nombre)}<br>NIF: ${esc(tk.cliente.nif)}<br>${esc(tk.cliente.dir)}</div>`:''}<hr>
+    ${tk.lines.map(l=>`<div class="r"><span>${l.q} ${esc(l.n)}</span><span>${eur(l.imp)}</span></div>`).join("")}<hr>
+    <div class="r"><span>Base imponible</span><span>${eur(ivs.base)}</span></div>
+    <div class="r"><span>IVA 10 %</span><span>${eur(ivs.iva)}</span></div>
+    <div class="r"><b>TOTAL</b><b>${eur(ivs.total)}</b></div>
+    ${tk.pagos?`<hr>${tk.pagos.map(p=>`<div class="r"><span>${p.medio==="efectivo"?"Efectivo":"Tarjeta"}</span><span>${eur(p.importe)}</span></div>${p.medio==="efectivo"?`<div class="r"><span>&nbsp;Entregado / Cambio</span><span>${eur(p.entregado)} / ${eur(p.cambio)}</span></div>`:`<div class="r"><span>&nbsp;Tarjeta **** ${p.last4} · Aut. ${p.aut}</span></div>`}`).join("")}`:''}
+    <hr><div style="text-align:center">Gracias por su visita</div></div>`;
+}
+function vCaja(){
+  if(!pay){
+    const busy = MESAS.filter(m=>openOrders(m).length);
+    return `<div><div class="eyebrow">Fase C · Caja</div><h2>Facturación y cobro</h2></div>
+      ${busy.length?`<p>Elegid la mesa que pide la cuenta.</p><div class="tables">${busy.map(m=>{ const o=openOrders(m); const unserved=o.some(x=>Object.values(x.st).some(v=>v!=="servido"));
+        return `<button type="button" class="table-btn busy" data-paymesa="${m}"><b>${m}</b><small>${eur(mesaTotal(m))}${unserved?' · sin servir todo':''}</small></button>`; }).join("")}</div>`
+      :`<div class="card"><p>No hay ninguna cuenta abierta.</p></div>`}
+      ${S.tickets.length?`<h3>Tiques emitidos</h3><div class="table-wrap"><table><thead><tr><th>Nº</th><th>Hora</th><th>Mesa</th><th>Tipo</th><th>Pago</th><th>Total</th></tr></thead><tbody>${S.tickets.slice().reverse().map(t=>`<tr><td>${esc(t.num)}</td><td>${t.hora}</td><td>${esc(t.mesa)}</td><td>${t.tipo==="completa"?"Completa":"Simplificada"}</td><td>${[...new Set(t.pagos.map(p=>p.medio==="efectivo"?"Efectivo":"Tarjeta"))].join(" + ")}</td><td class="num">${eur(t.total)}</td></tr>`).join("")}</tbody></table></div>`:''}`;
+  }
+  const preview = {num:"(borrador)", fecha:today(), hora:hhmm(Date.now()), mesa:pay.mesa, tipo:pay.tipo, cliente:pay.cliente, lines:aggLines(openOrders(pay.mesa)), total:pay.total, pagos:pay.pagos.length?pay.pagos:null};
+  const unserved = openOrders(pay.mesa).some(x=>Object.values(x.st).some(v=>v!=="servido"));
+  let step;
+  if(!pay.checked){
+    step = `<div class="card stack"><h3>1. Tipo de documento</h3>
+      <div class="chips">${[["simplificada","Factura simplificada (tique)"],["completa","Factura completa"]].map(([k,n])=>`<button type="button" class="chip" data-tipo="${k}" aria-pressed="${pay.tipo===k}">${n}</button>`).join("")}</div>
+      ${pay.tipo==="completa"?`<div class="grid2"><label class="field"><span>Nombre o razón social</span><input type="text" id="cNombre" value="${esc(pay.cliente.nombre)}"></label><label class="field"><span>NIF</span><input type="text" id="cNif" value="${esc(pay.cliente.nif)}"></label></div><label class="field"><span>Domicilio</span><input type="text" id="cDir" value="${esc(pay.cliente.dir)}"></label>`:''}
+      <h3>2. Revisad el tique con lo consumido</h3>
+      ${unserved?`<div class="note bad">Ojo: esta mesa tiene productos que aún no constan como servidos.</div>`:''}
+      <label class="check"><input type="checkbox" id="chkTicket"><span>He comprobado con el cliente que el tique coincide con lo que ha consumido.</span></label>
+      <button type="button" class="btn" id="toPay">Pasar al cobro</button></div>`;
+  } else if(left()>0){
+    const parts = pay.partes>1 ? r2(pay.total/pay.partes) : null;
+    let method = "";
+    if(pay.method==="efectivo"){
+      const amt = num(pay.cashAmt||left());
+      method = `<div class="card stack"><h3>Cobro en efectivo</h3>
+        <label class="field"><span>Importe que se cobra en efectivo</span><input type="text" inputmode="decimal" id="cashAmt" value="${esc(pay.cashAmt||String(left()).replace(".",","))}"></label>
+        <div class="field"><span>El cliente entrega: <b>${eur(pay.cashGiven)}</b></span>
+          <div class="money">${[50,20,10,5].map(v=>`<button type="button" class="bill" data-cash="${v}">${v} €</button>`).join("")}${[2,1,0.5,0.2,0.1,0.05].map(v=>`<button type="button" data-cash="${v}">${eur(v).replace(",00","")}</button>`).join("")}<button type="button" data-cash="0" data-clear="1">Borrar</button></div></div>
+        <label class="field"><span>Cambio que vais a devolver (€)</span><input type="text" inputmode="decimal" id="changeIn" value="${esc(pay.changeIn)}" placeholder="Calculadlo vosotros"></label>
+        ${pay.changeOk===false?`<div class="note bad">El cambio no es correcto. Restad: entregado ${eur(pay.cashGiven)} − importe ${isNaN(amt)?"?":eur(amt)}. Contadlo en voz alta.</div>`:''}
+        <div class="row"><button type="button" class="btn" id="cashOk">Comprobar y cobrar</button><button type="button" class="btn ghost" data-method="">Cambiar medio de pago</button></div></div>`;
+    } else if(pay.method==="tarjeta"){
+      const amt = num(pay.cardAmt||left());
+      const P = pay.pos||{stage:"idle"};
+      let screen, keys="", acts="";
+      if(P.stage==="idle"){ screen=`<span>IMPORTE</span><b>${eur(amt)}</b><span>Acerque o inserte tarjeta</span>`;
+        acts=`<button type="button" data-pos="contactless">Acercar tarjeta (sin contacto)</button><button type="button" data-pos="chip">Insertar tarjeta</button>`; }
+      else if(P.stage==="pin"){ screen=`<span>${eur(amt)}</span><b>PIN: ${"•".repeat(P.pin.length)}${"_".repeat(4-P.pin.length)}</b><span>${P.why||"Introduzca su PIN"}</span>`;
+        keys=`<div class="keys">${[1,2,3,4,5,6,7,8,9].map(k=>`<button type="button" data-pin="${k}">${k}</button>`).join("")}<button type="button" class="ko" data-pin="C">Borrar</button><button type="button" data-pin="0">0</button><button type="button" class="ok" data-pin="OK">OK</button></div>`; }
+      else if(P.stage==="ok"){ screen=`<b>ACEPTADA</b><span>Aut. ${P.aut} · **** ${P.last4}</span><span>Retire la tarjeta</span>`;
+        acts=`<button type="button" data-pos="receipt">Entregar comprobante y registrar el pago</button>`; }
+      else { screen=`<b>DENEGADA</b><span>Operación no autorizada</span>`;
+        acts=`<button type="button" data-pos="retry">Probar con otra tarjeta</button><button type="button" data-method="efectivo">Ofrecer pago en efectivo</button>`; }
+      method = `<div class="card stack"><h3>Cobro con tarjeta</h3>
+        <label class="field"><span>Importe que se cobra con tarjeta</span><input type="text" inputmode="decimal" id="cardAmt" value="${esc(pay.cardAmt||String(left()).replace(".",","))}" ${P.stage!=="idle"?'disabled':''}></label>
+        <div class="pos" role="group" aria-label="Datáfono de prácticas"><div class="screen">${screen}</div>${keys}<div class="actions">${acts}</div></div>
+        <label class="check" style="max-width:420px"><input type="checkbox" id="forceDeny" ${pay.forceDeny?'checked':''}><span>Incidencia programada: la tarjeta del cliente será denegada (lo decide el grupo de clientes).</span></label>
+        <button type="button" class="btn ghost" data-method="">Cambiar medio de pago</button></div>`;
+    } else {
+      method = `<div class="card stack"><h3>3. Medio de pago</h3>
+        <div class="row"><button type="button" class="btn" data-method="efectivo">Efectivo</button><button type="button" class="btn" data-method="tarjeta">Tarjeta</button></div>
+        <div class="field"><span>¿Pagan por separado?</span><div class="chips">${[1,2,3,4].map(n=>`<button type="button" class="chip" data-partes="${n}" aria-pressed="${pay.partes===n}">${n===1?"Todo junto":n+" personas"}</button>`).join("")}</div></div>
+        ${parts?`<div class="note">Cada persona paga <b>${eur(parts)}</b>${r2(parts*pay.partes)!==pay.total?` (la última, ${eur(r2(pay.total-parts*(pay.partes-1)))}, por el redondeo)`:''}. Cobrad cada parte por separado con su medio de pago.</div>`:''}
+        <p class="muted">Para un pago mixto, cobrad primero una parte en efectivo y el resto con tarjeta.</p></div>`;
+    }
+    step = `<div class="note"><b>Pendiente de cobro: ${eur(left())}</b>${pay.pagos.length?` · ya cobrado ${eur(paid())}`:''}</div>${method}`;
+  } else {
+    step = `<div class="note ok"><b>Cuenta cobrada.</b> Entregad el tique al cliente.</div><button type="button" class="btn" id="closeTicket">Cerrar la cuenta y emitir el tique</button>`;
+  }
+  return `<div><div class="eyebrow">Fase C · Caja</div><h2>Cuenta de ${esc(pay.mesa)} · ${eur(pay.total)}</h2></div>
+    <div class="split"><div class="stack">${step}<button type="button" class="btn ghost" id="cancelPay" ${pay.pagos.length?'disabled':''}>Volver a la caja</button></div><div>${receipt(preview)}</div></div>`;
+}
+
+/* ---------- Incidencias ---------- */
+function vInc(){
+  const answered = Object.keys(S.inc).length;
+  if(S.incPos>=INCIDENCIAS.length){
+    return `<div><div class="eyebrow">Fase C</div><h2>Resolución de incidencias</h2></div>
+      <div class="note ok">Habéis visto las ${INCIDENCIAS.length} incidencias y acertado ${Object.values(S.inc).filter(Boolean).length} de ${answered}.</div>
+      <button type="button" class="btn ghost" id="incRestart">Repetir las incidencias</button>`;
+  }
+  const idx = S.incOrder[S.incPos], inc = INCIDENCIAS[idx];
+  if(!S._opts || S._opts.idx!==idx) S._opts = {idx, list:shuffle([{t:inc.ok,c:true},...inc.bad.map(t=>({t,c:false}))])};
+  const opts = S._opts.list, pick = S._pick;
+  return `<div><div class="eyebrow">Fase C · ${esc(inc.f)} · Incidencia ${S.incPos+1} de ${INCIDENCIAS.length}</div><h2>${esc(inc.t)}</h2></div>
+    <p class="muted">El grupo de clientes puede representar esta situación en la sala. Después, el equipo elige qué haría.</p>
+    <div class="card stack"><p class="muted">El cliente dice:</p><p class="quote">«${esc(inc.q)}»</p></div>
+    <div class="options">${opts.map((o,i)=>`<button type="button" class="option ${pick!=null?(o.c?'right':(pick===i?'wrong':'')):''}" data-opt="${i}" ${pick!=null?'disabled':''}>${esc(o.t)}</button>`).join("")}</div>
+    ${pick!=null?`<div class="note ${opts[pick].c?'ok':'bad'}"><b>${opts[pick].c?'Correcto.':'Esta no es la mejor respuesta.'}</b> ${esc(inc.why)}</div>
+    <div class="row"><button type="button" class="btn" id="incNext">${S.incPos+1<INCIDENCIAS.length?'Siguiente incidencia':'Ver resultado'}</button></div>`:''}`;
+}
+
+/* ---------- Cierre y arqueo ---------- */
+function cashIn(){ return r2(S.tickets.reduce((s,t)=>s+t.pagos.filter(p=>p.medio==="efectivo").reduce((a,p)=>a+p.importe,0),0)); }
+function cardIn(){ return r2(S.tickets.reduce((s,t)=>s+t.pagos.filter(p=>p.medio==="tarjeta").reduce((a,p)=>a+p.importe,0),0)); }
+function vCierre(){
+  const open = MESAS.filter(m=>openOrders(m).length);
+  const esperado = r2(S.caja + cashIn());
+  const A = S.arqueo;
+  return `<div><div class="eyebrow">Fase D</div><h2>Postservicio, arqueo y cierre</h2></div>
+    ${open.length?`<div class="note bad">Quedan cuentas abiertas: ${open.join(", ")}. Cobradlas antes de cerrar la caja.</div>`:''}
+    <div class="card stack"><h3>Arqueo de caja</h3>
+      <div class="kv"><span>Cambio inicial</span><b>${eur(S.caja)}</b><span>Cobrado en efectivo</span><b>${eur(cashIn())}</b><span>Cobrado con tarjeta (datáfono)</span><b>${eur(cardIn())}</b><span>Tiques emitidos</span><b>${S.tickets.length}</b><span>Total facturado</span><b>${eur(cashIn()+cardIn())}</b></div>
+      <label class="field"><span>Efectivo que hay en la caja al contarlo (€)</span><input type="text" inputmode="decimal" id="contado" value="${A?String(A.contado).replace(".",","):""}" placeholder="Contad billetes y monedas"></label>
+      <button type="button" class="btn" id="doArqueo">Hacer el arqueo</button>
+      ${A?(A.diff===0?`<div class="note ok"><b>La caja cuadra.</b> Hay ${eur(A.contado)}, justo lo esperado (${eur(A.esperado)}).</div>`:`<div class="note bad"><b>Descuadre de ${eur(Math.abs(A.diff))}</b> ${A.diff>0?"de más":"de menos"}. Esperado ${eur(A.esperado)}, contado ${eur(A.contado)}. Revisad los cambios entregados y los tiques.</div>`):''}
+    </div>
+    <h3>Cierre del puesto</h3>${bar(S.d.length,FASE_D.length)}${checklist(FASE_D,S.d,"d")}
+    <div class="next"><span></span><button type="button" class="btn" data-goto="resumen">Ver el resumen del equipo</button></div>`;
+}
+
+/* ---------- Métricas, resumen y código ---------- */
+function metrics(){
+  const by = rot => {
+    const os = S.orders.filter(o=>o.rot===rot), ts = S.tickets.filter(t=>t.rot===rot);
+    const stTimes = st => { const v=os.filter(o=>o.tm[st]&&o.tm[st].listo).map(o=>(o.tm[st].listo-o.t)/60000); return v.length? Math.round(v.reduce((a,b)=>a+b,0)/v.length*10)/10 : null; };
+    return {com:os.length, ask:os.filter(o=>o.asked!=="no").length, risk:os.filter(o=>o.risky).length,
+      nb:os.filter(o=>o.st.barra).length, nc:os.filter(o=>o.st.cocina).length, tb:stTimes("barra"), tc:stTimes("cocina"),
+      tk:ts.length, fc:ts.filter(t=>t.tipo==="completa").length, ef:ts.reduce((s,t)=>s+t.pagos.filter(p=>p.medio==="efectivo").length,0), tj:ts.reduce((s,t)=>s+t.pagos.filter(p=>p.medio==="tarjeta").length,0),
+      ce:(S.cashErrRot||{})[rot]||0};
+  };
+  const tA = FASE_A.reduce((n,g)=>n+g.items.length,0);
+  return {rots:Array.from({length:S.nRot},(_,i)=>by(i+1)), a:[S.a.length,tA], d:[S.d.length,FASE_D.length], inc:[Object.values(S.inc).filter(Boolean).length, Object.keys(S.inc).length],
+    arq: S.arqueo ? S.arqueo.diff : null, open: MESAS.filter(m=>openOrders(m).length).length, den:S.cardDenied};
+}
 function b64urlEncode(str){ const bytes=new TextEncoder().encode(str); let bin=""; bytes.forEach(b=>bin+=String.fromCharCode(b)); return btoa(bin).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""); }
 function b64urlDecode(s){ s=s.replace(/-/g,"+").replace(/_/g,"/"); while(s.length%4) s+="="; const bin=atob(s); return new TextDecoder().decode(Uint8Array.from(bin,c=>c.charCodeAt(0))); }
 function makeCode(){
-  const asked = S.orders.filter(o=>o.asked!=="no").length;
-  const payload = [1, S.name, S.a.length, S.b.length, S.d.length, S.orders.length, asked, Object.values(S.inc).filter(Boolean).length, Object.keys(S.inc).length, today()];
-  return "LM1." + b64urlEncode(JSON.stringify(payload));
+  const m = metrics();
+  const payload = {v:2, team:S.team, f:S.fecha, g:S.groups.map(g=>[g.name, g.members, Array.from({length:S.nRot},(_,i)=>g.roles[i+1])]), m};
+  return "LM2." + b64urlEncode(JSON.stringify(payload));
 }
 function readCode(text){
-  const m = String(text||"").match(/LM1\.([A-Za-z0-9_-]+)/);
-  if(!m) return null;
-  try{
-    const p = JSON.parse(b64urlDecode(m[1]));
-    if(!Array.isArray(p) || p[0]!==1) return null;
-    const [ , name, a, b, d, orders, asked, incOk, incTotal, fecha] = p;
-    return {name:String(name||"").trim(), a, b, d, orders, asked, incOk, incTotal, fecha};
-  }catch(e){ return null; }
+  const mt = String(text||"").match(/LM2\.([A-Za-z0-9_-]+)/);
+  if(!mt) return null;
+  try{ const p = JSON.parse(b64urlDecode(mt[1])); return p && p.v===2 ? p : null; }catch(e){ return null; }
 }
-const norm = s => String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/\s+/g," ").trim();
-function matchStudent(name){
-  const n = norm(name); if(!n) return null;
-  return teacher.students.find(s=>norm(s.nombre)===n)
-      || teacher.students.find(s=>norm(s.nombre).startsWith(n+" ") || n.startsWith(norm(s.nombre)+" "))
-      || null;
-}
-
-/* ---------- Modo docente ---------- */
-function emptyForm(){ return {alumno:"", fecha:today(), higiene:0, servicio:0, atencion:0, postservicio:0, faseA:"", faseB:"", faseD:"", comandas:"", alergenos:"", incOk:"", incTotal:"", notas:""}; }
-function renderTeacher(){
-  if(!teacher.form) teacher.form = emptyForm();
-  const tabs = `<div class="tabs" role="tablist">${[["evaluar","Evaluar"],["resultados","Resultados"],["alumnos","Alumnos"]].map(([k,n])=>`<button type="button" class="chip" role="tab" data-ttab="${k}" aria-pressed="${teacher.tab===k}">${n}</button>`).join("")}</div>`;
-  const note = store.kind==="local" ? `<div class="note">Los resultados se guardan en este navegador. Exporta a Excel de vez en cuando para tener copia.</div>` : "";
-  return `<div class="stack"><div><div class="eyebrow">Modo docente</div><h2>Evaluación con la rúbrica</h2></div>${note}${tabs}${teacher.tab==="evaluar"?tEvaluar():teacher.tab==="resultados"?tResultados():tAlumnos()}</div>`;
-}
-function tEvaluar(){
-  const f = teacher.form;
-  const paste = `<div class="card stack" style="border:2px dashed var(--brass);background:var(--brass-soft)">
-    <h3>Pegar el código del alumno</h3>
-    <p class="muted">Pega el mensaje que te ha enviado. La evaluación se rellena sola y tú solo marcas la rúbrica.</p>
-    <textarea id="pasteCode" rows="2" placeholder="LM1.…" style="min-height:0">${esc(teacher.paste||"")}</textarea>
-    ${teacher.pasteMsg||""}
-    <div class="row"><button type="button" class="btn" id="useCode">Rellenar con el código</button></div>
-  </div>`;
-  if(!teacher.students.length) return paste + `<div class="card stack"><p>También puedes añadir a tu alumnado en la pestaña <b>Alumnos</b>.</p><button type="button" class="btn ghost" data-ttab="alumnos">Añadir alumnos</button></div>`;
-  return paste + `<div class="card stack">
-    <div class="grid2">
-      <label class="field"><span>Alumno o alumna</span><select id="fAlumno"><option value="">Elige…</option>${teacher.students.map(s=>`<option value="${esc(s.id)}" ${f.alumno===s.id?'selected':''}>${esc(s.nombre)}</option>`).join("")}</select></label>
-      <label class="field"><span>Fecha</span><input type="date" id="fFecha" value="${esc(f.fecha)}"></label>
+function vResumen(){
+  const m = metrics();
+  const rotCard = (r,x) => `<div class="card stack"><h3>Rotación ${r}</h3><p class="muted">${Object.entries(rolesOf(r)).map(([k,n])=>`${ROLES[k]}: ${n.map(esc).join(", ")}`).join(" · ")||"Sin puestos asignados"}</p>
+    <div class="kv"><span>Comandas tomadas</span><b>${x.com}</b><span>Preguntaron por alérgenos</span><b>${x.ask}/${x.com}</b><span>Notas de barra · tiempo medio</span><b>${x.nb} · ${x.tb!=null?x.tb+" min":"–"}</b><span>Notas de cocina · tiempo medio</span><b>${x.nc} · ${x.tc!=null?x.tc+" min":"–"}</b><span>Tiques emitidos (facturas completas)</span><b>${x.tk} (${x.fc})</b><span>Cobros en efectivo / tarjeta</span><b>${x.ef} / ${x.tj}</b><span>Errores al calcular el cambio</span><b>${x.ce}</b></div></div>`;
+  return `<div><div class="eyebrow">Resumen</div><h2>${S.team?esc(S.team):"Resumen del turno"}</h2></div>
+    <div class="stats">
+      <div class="stat"><span class="muted">Fase A · Preparar</span><b>${m.a[0]}/${m.a[1]}</b></div>
+      <div class="stat"><span class="muted">Incidencias acertadas</span><b>${m.inc[0]}/${m.inc[1]}</b></div>
+      <div class="stat"><span class="muted">Arqueo</span><b>${m.arq==null?"–":m.arq===0?"Cuadra":eur(m.arq)}</b></div>
+      <div class="stat"><span class="muted">Fase D · Cierre</span><b>${m.d[0]}/${m.d[1]}</b></div>
     </div>
-    <div class="rubric">${CRITERIOS.map(c=>`<div class="crit"><h3>${c.n}</h3>
-      <div class="levels">${[1,2,3].map(v=>`<button type="button" class="level" data-crit="${c.k}" data-v="${v}" aria-pressed="${f[c.k]===v}">${NIVELES[v]}</button>`).join("")}</div>
-      <details><summary>Ver descriptores</summary><ul>${c.d.map((d,i)=>`<li><b>${NIVELES[i+1]}:</b> ${esc(d)}</li>`).join("")}</ul></details></div>`).join("")}</div>
-    <h3>Lo que muestra su resumen</h3>
-    <div class="grid2">
-      <label class="field"><span>Fase A (de 12)</span><input type="number" min="0" max="12" inputmode="numeric" id="fA" value="${esc(f.faseA)}"></label>
-      <label class="field"><span>Fase B, pasos (de 8)</span><input type="number" min="0" max="8" inputmode="numeric" id="fB" value="${esc(f.faseB)}"></label>
-      <label class="field"><span>Fase D (de 8)</span><input type="number" min="0" max="8" inputmode="numeric" id="fD" value="${esc(f.faseD)}"></label>
-      <label class="field"><span>Comandas tomadas</span><input type="number" min="0" inputmode="numeric" id="fCom" value="${esc(f.comandas)}"></label>
-      <label class="field"><span>Incidencias acertadas</span><input type="number" min="0" max="6" inputmode="numeric" id="fIncOk" value="${esc(f.incOk)}"></label>
-      <label class="field"><span>Incidencias vistas</span><input type="number" min="0" max="6" inputmode="numeric" id="fIncTotal" value="${esc(f.incTotal)}"></label>
+    <div class="grid2">${m.rots.map((x,i)=>rotCard(i+1,x)).join("")}</div>
+    <div class="card stack"><h3>Código de resultados</h3>
+      ${groupsReady()?`<p>Copiadlo y enviádselo a vuestro docente por WhatsApp o por correo.</p>
+      <textarea id="codeBox" readonly rows="4" style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.8rem;min-height:0">${esc(makeCode())}</textarea>
+      <div class="row"><button type="button" class="btn" id="copyCode">Copiar código</button></div>`
+      :`<div class="note bad">Para generar el código, añadid a las personas de cada grupo en <b>Equipo</b>.</div><button type="button" class="btn ghost" data-goto="equipo">Ir a Equipo</button>`}
     </div>
-    <div class="field"><span>¿Preguntó por los alérgenos?</span><div class="chips">${["Siempre","A veces","Nunca"].map(v=>`<button type="button" class="chip" data-alerg="${v}" aria-pressed="${f.alergenos===v}">${v}</button>`).join("")}</div></div>
-    <label class="field"><span>Observaciones</span><textarea id="fNotas" placeholder="Aciertos, aspectos a mejorar, incidencias…">${esc(f.notas)}</textarea></label>
-    <div class="row"><button type="button" class="btn" id="saveEval">Guardar evaluación</button></div>
-  </div>`;
-}
-function studentName(id){ const s=teacher.students.find(x=>x.id===id); return s?s.nombre:"(alumno borrado)"; }
-function filteredEvals(){ return teacher.evals.filter(e=>!teacher.filter||e.alumno===teacher.filter).slice().sort((a,b)=>(b.fecha||"").localeCompare(a.fecha||"")||(b.creado||0)-(a.creado||0)); }
-function pill(v){ return v?`<span class="pill l${v}">${NIVELES[v]}</span>`:"–"; }
-function tResultados(){
-  const list = filteredEvals();
-  return `<div class="stack">
-    <div class="grid2"><label class="field"><span>Ver resultados de</span><select id="filter"><option value="">Todo el grupo</option>${teacher.students.map(s=>`<option value="${esc(s.id)}" ${teacher.filter===s.id?'selected':''}>${esc(s.nombre)}</option>`).join("")}</select></label></div>
-    <div class="row"><button type="button" class="btn" id="expXlsx" ${list.length?'':'disabled'}>Exportar a Excel</button><button type="button" class="btn ghost" id="expPdf" ${list.length?'':'disabled'}>Exportar a PDF</button></div>
-    ${list.length?`<div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Alumno</th>${CRITERIOS.map(c=>`<th>${c.n}</th>`).join("")}<th>Fase A</th><th>Fase B</th><th>Fase D</th><th>Comandas</th><th>Alérgenos</th><th>Incid.</th><th>Observaciones</th><th></th></tr></thead><tbody>
-      ${list.map(e=>`<tr><td>${fmtDate(e.fecha)}</td><td>${esc(studentName(e.alumno))}</td>${CRITERIOS.map(c=>`<td>${pill(e[c.k])}</td>`).join("")}<td class="num">${esc(e.faseA)||"–"}</td><td class="num">${esc(e.faseB)||"–"}</td><td class="num">${esc(e.faseD)||"–"}</td><td class="num">${esc(e.comandas)||"–"}</td><td>${esc(e.alergenos)||"–"}</td><td class="num">${e.incTotal!==""&&e.incTotal!=null?esc(e.incOk)+"/"+esc(e.incTotal):"–"}</td><td>${esc(e.notas)}</td>
-      <td>${teacher.confirmDel===e.id?`<div class="confirm-row"><button type="button" class="btn small danger" data-del="${e.id}">Borrar</button><button type="button" class="btn small ghost" data-nodel>No</button></div>`:`<button type="button" class="btn small ghost" data-askdel="${e.id}" aria-label="Borrar evaluación">Borrar</button>`}</td></tr>`).join("")}
-    </tbody></table></div>`:`<div class="card"><p>Aún no hay evaluaciones${teacher.filter?" de esta persona":""}. Guarda la primera en la pestaña <b>Evaluar</b>.</p></div>`}
-  </div>`;
-}
-function tAlumnos(){
-  return `<div class="card stack">
-    <div class="row"><input type="text" id="newStudent" placeholder="Nombre y apellido" style="flex:1;min-width:0"><button type="button" class="btn" id="addStudent">Añadir</button></div>
-    ${teacher.students.length?`<ul class="student-list">${teacher.students.map(s=>`<li><span>${esc(s.nombre)} <span class="muted">· ${teacher.evals.filter(e=>e.alumno===s.id).length} evaluaciones</span></span>${teacher.confirmDel===s.id?`<span class="confirm-row"><button type="button" class="btn small danger" data-delstu="${s.id}">Quitar</button><button type="button" class="btn small ghost" data-nodel>No</button></span>`:`<button type="button" class="btn small ghost" data-askdel="${s.id}">Quitar</button>`}</li>`).join("")}</ul>`:`<p class="muted">Todavía no hay nadie en la lista.</p>`}
-    <p class="muted">Quitar a alguien de la lista no borra sus evaluaciones.</p>
-  </div>`;
+    <div id="resetBox" class="confirm-row"><button type="button" class="btn ghost" id="resetAsk">Empezar un turno nuevo</button></div>`;
 }
 
-/* ---------- Almacenamiento del docente ---------- */
-function localStore(){
-  const get = k => load("mirador-"+k, []);
-  const listeners = {};
-  const emit = k => (listeners[k]||[]).forEach(fn=>fn(get(k)));
-  return {kind:"local",
-    watch(k, fn){ (listeners[k]=listeners[k]||[]).push(fn); fn(get(k)); },
-    async put(k, doc){ const l=get(k).filter(x=>x.id!==doc.id); l.push(doc); save("mirador-"+k,l); emit(k); },
-    async del(k, id){ save("mirador-"+k, get(k).filter(x=>x.id!==id)); emit(k); }};
+/* ---------- Eventos del TPV ---------- */
+function tpvClick(t){
+  if(t.dataset.go!=null){ S.step=+t.dataset.go; persist(); render(); window.scrollTo({top:0}); return true; }
+  if(t.dataset.goto){ if(t.dataset.goto==="caja" && draft.mesa && openOrders(draft.mesa).length){ startPay(draft.mesa); } go(t.dataset.goto); return true; }
+  // Equipo
+  if(t.dataset.addmember){ const gid=t.dataset.addmember, i=document.querySelector(`[data-newmember="${gid}"]`), n=i.value.trim(); if(!n){ i.focus(); return true; } S.groups.find(g=>g.id===gid).members.push(n); persist(); render(); document.querySelector(`[data-newmember="${gid}"]`).focus(); return true; }
+  if(t.dataset.delmember){ S.groups.find(g=>g.id===t.dataset.delmember).members.splice(+t.dataset.i,1); persist(); render(); return true; }
+  if(t.dataset.nrot){ S.nRot=+t.dataset.nrot; if(S.rot>S.nRot) S.rot=S.nRot; persist(); render(); return true; }
+  if(t.dataset.setrot){ S.rot=+t.dataset.setrot; persist(); render(); toast("Ahora estáis en la rotación "+S.rot); return true; }
+  // Sala
+  if(t.dataset.mesa){ draft = blankDraft(t.dataset.mesa); render(); return true; }
+  if(t.dataset.add){ draft.lines[t.dataset.add]=(draft.lines[t.dataset.add]||0)+1; render(); toast("Añadido: "+item(t.dataset.add).n); return true; }
+  if(t.dataset.qty){ const id=t.dataset.qty; draft.lines[id]=Math.max(0,(draft.lines[id]||0)+ +t.dataset.d); render(); return true; }
+  if(t.id==="toAllergens"){ draft.stage="ask"; render(); $("#orderBox").scrollIntoView({block:"nearest"}); return true; }
+  if(t.dataset.ask){ draft.asked=t.dataset.ask; draft.allergies=[]; draft.stage = t.dataset.ask==="alergias" ? "which" : "result"; render(); return true; }
+  if(t.dataset.allergy){ const a=t.dataset.allergy; draft.allergies = draft.allergies.includes(a)? draft.allergies.filter(x=>x!==a) : draft.allergies.concat(a); render(); return true; }
+  if(t.id==="checkAllergy"){ draft.stage="result"; render(); return true; }
+  if(t.id==="backToMenu"){ draft.stage="menu"; render(); return true; }
+  if(t.id==="sendOrder"){
+    const lines = Object.entries(draft.lines).filter(([,q])=>q>0).map(([pid,q])=>({pid,q,nota:(draft.notas[pid]||"").trim()}));
+    const risky = lines.some(l=>item(l.pid).a.some(a=>draft.allergies.includes(a)));
+    const st = {}, tm = {};
+    lines.forEach(l=>{ const s=lineStation(l); st[s]="nuevo"; tm[s]={}; });
+    S.nOrder++;
+    S.orders.push({id:uid(), n:S.nOrder, mesa:draft.mesa, t:Date.now(), rot:S.rot, lines, obs:draft.obs.trim(), asked:draft.asked, allergies:draft.allergies, risky, st, tm, paid:false});
+    persist(); const msg = Object.keys(st).map(s=>s==="barra"?"barra":"cocina").join(" y ");
+    draft = blankDraft(draft.mesa); render(); toast("Comanda enviada a "+msg); return true;
+  }
+  if(t.dataset.served){ const o=S.orders.find(x=>x.id===t.dataset.served); o.st[t.dataset.st]="servido"; o.tm[t.dataset.st].servido=Date.now(); persist(); render(); toast("Servido en "+o.mesa); return true; }
+  // Barra / cocina
+  if(t.dataset.adv){ const o=S.orders.find(x=>x.id===t.dataset.adv), st=t.dataset.st; o.st[st]=t.dataset.to; o.tm[st][t.dataset.to]=Date.now(); persist(); render(); return true; }
+  // Caja
+  if(t.dataset.paymesa){ startPay(t.dataset.paymesa); render(); return true; }
+  if(t.id==="cancelPay"){ pay=null; render(); return true; }
+  if(t.dataset.tipo){ pay.tipo=t.dataset.tipo; render(); return true; }
+  if(t.id==="toPay"){
+    if(!$("#chkTicket").checked){ toast("Comprobad primero el tique con el cliente."); return true; }
+    if(pay.tipo==="completa" && (!pay.cliente.nombre.trim()||!pay.cliente.nif.trim()||!pay.cliente.dir.trim())){ toast("La factura completa necesita nombre, NIF y domicilio."); return true; }
+    pay.checked=true; render(); return true;
+  }
+  if(t.dataset.partes){ pay.partes=+t.dataset.partes; render(); return true; }
+  if(t.dataset.method!=null){ pay.method=t.dataset.method||null; pay.cashGiven=0; pay.changeIn=""; pay.changeOk=null; pay.cashAmt=""; pay.cardAmt=""; pay.pos=null; render(); return true; }
+  if(t.dataset.cash!=null){ pay.cashGiven = t.dataset.clear ? 0 : r2(pay.cashGiven + +t.dataset.cash); pay.changeOk=null; render(); return true; }
+  if(t.id==="cashOk"){
+    const amt = num(pay.cashAmt||left()), ch = num(pay.changeIn);
+    if(isNaN(amt)||amt<=0||amt>left()){ toast("Revisad el importe en efectivo: como mucho "+eur(left())+"."); return true; }
+    if(pay.cashGiven<amt){ toast("El cliente aún no ha entregado suficiente."); return true; }
+    if(isNaN(ch)){ toast("Escribid el cambio que vais a devolver."); return true; }
+    const real = r2(pay.cashGiven-amt);
+    if(ch!==real){ S.cashErr++; S.cashErrRot=S.cashErrRot||{}; S.cashErrRot[S.rot]=(S.cashErrRot[S.rot]||0)+1; persist(); pay.changeOk=false; render(); return true; }
+    pay.pagos.push({medio:"efectivo", importe:amt, entregado:pay.cashGiven, cambio:real});
+    pay.method=null; pay.cashGiven=0; pay.changeIn=""; pay.changeOk=null; pay.cashAmt="";
+    render(); toast("Cambio correcto: "+eur(real)+". Contadlo en voz alta al entregarlo."); return true;
+  }
+  if(t.dataset.pos){
+    const amt = num(pay.cardAmt||left());
+    if(t.dataset.pos==="contactless"||t.dataset.pos==="chip"){
+      if(isNaN(amt)||amt<=0||amt>left()){ toast("Revisad el importe con tarjeta: como mucho "+eur(left())+"."); return true; }
+      pay.cardAmt = String(amt).replace(".",",");
+      const needPin = t.dataset.pos==="chip" || amt>50;
+      pay.pos = needPin ? {stage:"pin", pin:"", why: t.dataset.pos==="chip"?"Introduzca su PIN":"Importe superior a 50 €: introduzca su PIN"} : resolveCard();
+      render(); return true;
+    }
+    if(t.dataset.pos==="retry"){ pay.pos={stage:"idle"}; pay.forceDeny=false; render(); return true; }
+    if(t.dataset.pos==="receipt"){ pay.pagos.push({medio:"tarjeta", importe:amt, last4:pay.pos.last4, aut:pay.pos.aut}); pay.method=null; pay.pos=null; pay.cardAmt=""; render(); toast("Pago con tarjeta registrado."); return true; }
+  }
+  if(t.dataset.pin!=null){
+    const P = pay.pos;
+    if(t.dataset.pin==="C") P.pin="";
+    else if(t.dataset.pin==="OK"){ if(P.pin.length<4){ P.why="El PIN tiene 4 cifras"; } else { pay.pos=resolveCard(); } }
+    else if(P.pin.length<4) P.pin+=t.dataset.pin;
+    render(); return true;
+  }
+  if(t.id==="closeTicket"){
+    const orders = openOrders(pay.mesa);
+    S.nTicket++;
+    const tk = {num:`T${String(S.nTicket).padStart(4,"0")}`, fecha:today(), hora:hhmm(Date.now()), mesa:pay.mesa, tipo:pay.tipo, cliente:pay.cliente, lines:aggLines(orders), total:pay.total, pagos:pay.pagos, rot:S.rot};
+    S.tickets.push(tk); orders.forEach(o=>o.paid=true); persist();
+    pay=null; render(); toast("Tique "+tk.num+" emitido. Mesa libre."); return true;
+  }
+  // Incidencias
+  if(t.dataset.opt!=null){ S._pick=+t.dataset.opt; S.inc[S.incOrder[S.incPos]]=S._opts.list[S._pick].c; persist(); render(); return true; }
+  if(t.id==="incNext"){ S.incPos++; S._pick=null; S._opts=null; persist(); render(); return true; }
+  if(t.id==="incRestart"){ S.inc={}; S.incPos=0; S.incOrder=shuffle(INCIDENCIAS.map((_,i)=>i)); S._pick=null; S._opts=null; persist(); render(); return true; }
+  // Cierre
+  if(t.id==="doArqueo"){ const c=num($("#contado").value); if(isNaN(c)){ toast("Escribid el efectivo contado."); return true; } const e=r2(S.caja+cashIn()); S.arqueo={contado:c, esperado:e, diff:r2(c-e)}; persist(); render(); return true; }
+  // Resumen
+  if(t.id==="copyCode"){ const box=$("#codeBox");
+    try{ navigator.clipboard.writeText(box.value).then(()=>toast("Código copiado. Pegadlo en un mensaje a vuestro docente."), ()=>{ box.focus(); box.select(); toast("Mantened pulsado el código y elegid Copiar."); }); }
+    catch(e){ box.focus(); box.select(); toast("Mantened pulsado el código y elegid Copiar."); } return true; }
+  if(t.id==="resetAsk"){ $("#resetBox").innerHTML=`<span>¿Seguro? Se borrará todo el turno de este dispositivo.</span><button type="button" class="btn danger" id="resetYes">Sí, empezar de nuevo</button><button type="button" class="btn ghost" id="resetNo">No</button>`; return true; }
+  if(t.id==="resetYes"){ S=FRESH(); draft=blankDraft("Mesa 1"); pay=null; persist(); render(); return true; }
+  if(t.id==="resetNo"){ render(); return true; }
+  return false;
 }
-function dbStore(db){
-  return {kind:"db",
-    watch(k, fn){ db.collection(k).onSnapshot(snap=>fn(snap.docs.map(d=>Object.assign({id:d.id}, d.data()))), err=>toast("No se han podido cargar los datos. Recarga la página.")); },
-    async put(k, doc){ const {id, ...rest} = doc; await db.collection(k).doc(id).set(rest); },
-    async del(k, id){ await db.collection(k).doc(id).delete(); }};
+function resolveCard(){
+  const deny = pay.forceDeny;
+  if(deny){ S.cardDenied++; persist(); pay.forceDeny=false; return {stage:"ko"}; }
+  return {stage:"ok", aut:String(Math.floor(100000+Math.random()*899999)), last4:String(Math.floor(1000+Math.random()*8999))};
 }
-const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
-
-/* ---------- Exportar ---------- */
-const num = v => (v===""||v==null) ? "" : Number(v);
-function exportRows(){
-  return filteredEvals().map(e=>({
-    "Fecha": fmtDate(e.fecha), "Alumno/a": studentName(e.alumno),
-    ...Object.fromEntries(CRITERIOS.map(c=>[c.n, NIVELES[e[c.k]]||""])),
-    "Fase A (de 12)": num(e.faseA), "Fase B (de 8)": num(e.faseB), "Fase D (de 8)": num(e.faseD), "Comandas": num(e.comandas),
-    "Preguntó por alérgenos": e.alergenos||"", "Incidencias acertadas": num(e.incOk), "Incidencias vistas": num(e.incTotal),
-    "Observaciones": e.notas||""
-  }));
+function tpvChange(t){
+  if(t.dataset && t.dataset.check){ const k=t.dataset.check; S[k] = t.checked ? S[k].concat(t.value) : S[k].filter(x=>x!==t.value); persist(); render(); return true; }
+  if(t.dataset && t.dataset.grole){ S.groups.find(g=>g.id===t.dataset.grole).roles[t.dataset.rot]=t.value; persist(); render(); return true; }
+  if(t.id==="forceDeny"){ pay.forceDeny=t.checked; return true; }
+  if(t.id==="cajaIni"){ const v=num(t.value); if(!isNaN(v)&&v>=0){ S.caja=v; persist(); } else toast("Escribid el cambio inicial en euros, por ejemplo 100."); return true; }
+  return false;
 }
-function fileBase(){ return "Las_Moreras_resultados_" + (teacher.filter? studentName(teacher.filter).replace(/\s+/g,"_")+"_" : "") + today(); }
-async function offer(filename, data){
-  if(!downloads){ toast("Este dispositivo no permite descargar archivos desde aquí."); return; }
-  try{ await downloads.save({filename, data}); }
-  catch(e){ if(e && e.code==="declined") return; toast("No se ha podido descargar el archivo."); }
+function tpvInput(t){
+  if(t.id==="teamName"){ S.team=t.value.trim(); persist(); return true; }
+  if(t.dataset && t.dataset.nota){ draft.notas[t.dataset.nota]=t.value; return true; }
+  if(t.id==="obs"){ draft.obs=t.value; return true; }
+  if(t.id==="cNombre"){ pay.cliente.nombre=t.value; return true; }
+  if(t.id==="cNif"){ pay.cliente.nif=t.value; return true; }
+  if(t.id==="cDir"){ pay.cliente.dir=t.value; return true; }
+  if(t.id==="cashAmt"){ pay.cashAmt=t.value; return true; }
+  if(t.id==="changeIn"){ pay.changeIn=t.value; return true; }
+  if(t.id==="cardAmt"){ pay.cardAmt=t.value; return true; }
+  return false;
 }
-async function exportXlsx(){
-  if(!window.XLSX){ toast("No se ha cargado el módulo de Excel. Revisa la conexión."); return; }
-  const ws = XLSX.utils.json_to_sheet(exportRows());
-  ws["!cols"] = [{wch:11},{wch:24},{wch:16},{wch:16},{wch:16},{wch:16},{wch:9},{wch:9},{wch:9},{wch:10},{wch:12},{wch:10},{wch:10},{wch:50}];
-  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Resultados");
-  const leyenda = XLSX.utils.aoa_to_sheet([["Criterio","En proceso","Adecuado","Destacado"], ...CRITERIOS.map(c=>[c.n,...c.d])]);
-  XLSX.utils.book_append_sheet(wb, leyenda, "Rúbrica");
-  const buf = XLSX.write(wb, {bookType:"xlsx", type:"array"});
-  await offer(fileBase()+".xlsx", new Blob([buf]));
-}
-async function exportPdf(){
-  const J = window.jspdf && window.jspdf.jsPDF;
-  if(!J){ toast("No se ha cargado el módulo de PDF. Revisa la conexión."); return; }
-  const doc = new J({orientation:"landscape", unit:"mm", format:"a4"});
-  doc.setFont("helvetica","bold"); doc.setFontSize(15);
-  doc.text("Las Moreras · Resultados de la simulación (HOTR0208)", 14, 16);
-  doc.setFont("helvetica","normal"); doc.setFontSize(10);
-  doc.text((teacher.filter? "Alumno/a: "+studentName(teacher.filter) : "Todo el grupo") + " · Exportado el " + fmtDate(today()), 14, 23);
-  const rows = exportRows();
-  const head = Object.keys(rows[0]);
-  doc.autoTable({startY:28, head:[head], body:rows.map(r=>head.map(h=>String(r[h]))), styles:{fontSize:8, cellPadding:1.8, valign:"top"}, headStyles:{fillColor:[30,91,74]}, columnStyles:{13:{cellWidth:60}}});
-  await offer(fileBase()+".pdf", doc.output("blob"));
-}
-
-/* ---------- Eventos ---------- */
-document.addEventListener("click", async ev=>{
+document.addEventListener("click", ev=>{
   const t = ev.target.closest("button"); if(!t) return;
   if(t.id==="modeStudent"){ mode="alumno"; render(); return; }
   if(t.id==="modeTeacher"){ mode="docente"; render(); return; }
-  if(mode==="alumno"){
-    if(t.dataset.go!=null){ S.step=+t.dataset.go; persist(); render(); window.scrollTo({top:0}); return; }
-    if(t.dataset.add){ draft.lines[t.dataset.add]=(draft.lines[t.dataset.add]||0)+1; render(); toast("Añadido a la comanda: "+ITEMS.find(i=>i.id===t.dataset.add).n); return; }
-    if(t.dataset.qty){ const id=t.dataset.qty; draft.lines[id]=Math.max(0,(draft.lines[id]||0)+ +t.dataset.d); render(); return; }
-    if(t.id==="toAllergens"){ draft.stage="ask"; render(); $("#orderBox").scrollIntoView({block:"nearest"}); return; }
-    if(t.dataset.ask){ draft.asked=t.dataset.ask; draft.allergies=[]; draft.stage = t.dataset.ask==="alergias" ? "which" : "result"; render(); return; }
-    if(t.dataset.allergy){ const a=t.dataset.allergy; draft.allergies = draft.allergies.includes(a)? draft.allergies.filter(x=>x!==a) : draft.allergies.concat(a); render(); return; }
-    if(t.id==="checkAllergy"){ draft.stage="result"; render(); return; }
-    if(t.id==="backToMenu"){ draft.stage="menu"; render(); return; }
-    if(t.id==="sendOrder"){ S.orders.push({mesa:draft.mesa, lines:draft.lines, nota:draft.nota, asked:draft.asked, allergies:draft.allergies}); persist(); draft={mesa:draft.mesa, lines:{}, nota:"", stage:"menu", asked:null, allergies:[]}; toast("Comanda pasada a barra"); render(); return; }
-    if(t.dataset.opt!=null){ S._pick=+t.dataset.opt; const idx=S.incOrder[S.incPos]; S.inc[idx]=S._opts.list[S._pick].c; persist(); render(); return; }
-    if(t.id==="incNext"){ S.incPos++; S._pick=null; S._opts=null; persist(); render(); return; }
-    if(t.id==="incRestart"){ S.inc={}; S.incPos=0; S.incOrder=shuffle(INCIDENCIAS.map((_,i)=>i)); S._pick=null; S._opts=null; persist(); render(); return; }
-    if(t.id==="copyCode"){ const box=$("#codeBox"); const ok=()=>{ toast("Código copiado. Pégalo en un mensaje a tu docente."); };
-      try{ navigator.clipboard.writeText(box.value).then(ok, ()=>{ box.focus(); box.select(); toast("Mantén pulsado el código y elige Copiar."); }); }
-      catch(e){ box.focus(); box.select(); toast("Mantén pulsado el código y elige Copiar."); } return; }
-    if(t.id==="resetAsk"){ $("#resetBox").innerHTML=`<span>¿Seguro? Se borrará tu progreso en este dispositivo.</span><button type="button" class="btn danger" id="resetYes">Sí, empezar de nuevo</button><button type="button" class="btn ghost" id="resetNo">No</button>`; return; }
-    if(t.id==="resetYes"){ S=FRESH(); draft={mesa:"Mesa 1", lines:{}, nota:"", stage:"menu", asked:null, allergies:[]}; persist(); render(); return; }
-    if(t.id==="resetNo"){ render(); return; }
-  } else {
-    if(t.dataset.ttab){ teacher.tab=t.dataset.ttab; teacher.confirmDel=null; render(); return; }
-    if(t.id==="useCode"){
-      const r = readCode(teacher.paste);
-      if(!r){ teacher.pasteMsg=`<div class="note bad">No reconozco el código. Comprueba que empieza por LM1. y que está completo.</div>`; render(); return; }
-      let st = matchStudent(r.name), added=false;
-      if(!st && r.name){ const doc={id:newId(), nombre:r.name, creado:Date.now()}; try{ await store.put("alumnos",doc); st=doc; added=true; if(!teacher.students.some(s=>s.id===doc.id)) teacher.students.push(doc); }catch(e){} }
-      teacher.form = Object.assign(emptyForm(), {alumno: st?st.id:"", fecha: r.fecha||today(), faseA:String(r.a), faseB:String(r.b), faseD:String(r.d), comandas:String(r.orders), incOk:String(r.incOk), incTotal:String(r.incTotal),
-        alergenos: r.orders ? (r.asked===r.orders?"Siempre":r.asked===0?"Nunca":"A veces") : ""});
-      teacher.paste=""; teacher.pasteMsg=`<div class="note ok">Datos de <b>${esc(r.name)}</b> cargados${added?" y añadido a tu lista de alumnos":""}. Marca la rúbrica y guarda.</div>`;
-      render(); return;
-    }
-    if(t.dataset.crit){ teacher.form[t.dataset.crit]=+t.dataset.v; render(); return; }
-    if(t.dataset.alerg){ teacher.form.alergenos = teacher.form.alergenos===t.dataset.alerg? "" : t.dataset.alerg; render(); return; }
-    if(t.id==="saveEval"){
-      const f=teacher.form;
-      if(!f.alumno){ toast("Elige a quién estás evaluando."); return; }
-      if(CRITERIOS.some(c=>!f[c.k])){ toast("Marca un nivel en los cuatro criterios."); return; }
-      t.disabled=true;
-      try{ await store.put("evaluaciones", Object.assign({id:newId(), creado:Date.now()}, f)); toast("Evaluación guardada de "+studentName(f.alumno)); teacher.form=Object.assign(emptyForm(),{fecha:f.fecha}); teacher.pasteMsg=""; render(); }
-      catch(e){ t.disabled=false; toast("No se ha podido guardar. Inténtalo otra vez."); }
-      return;
-    }
-    if(t.id==="addStudent"){
-      const inp=$("#newStudent"), nombre=inp.value.trim(); if(!nombre){ inp.focus(); return; }
-      try{ await store.put("alumnos",{id:newId(), nombre, creado:Date.now()}); toast(nombre+" añadido a la lista"); }catch(e){ toast("No se ha podido añadir. Inténtalo otra vez."); }
-      return;
-    }
-    if(t.dataset.askdel){ teacher.confirmDel=t.dataset.askdel; render(); return; }
-    if(t.hasAttribute("data-nodel")){ teacher.confirmDel=null; render(); return; }
-    if(t.dataset.del){ try{ await store.del("evaluaciones", t.dataset.del); toast("Evaluación borrada"); }catch(e){ toast("No se ha podido borrar."); } teacher.confirmDel=null; render(); return; }
-    if(t.dataset.delstu){ try{ await store.del("alumnos", t.dataset.delstu); }catch(e){ toast("No se ha podido quitar."); } teacher.confirmDel=null; render(); return; }
-    if(t.id==="expXlsx"){ exportXlsx(); return; }
-    if(t.id==="expPdf"){ exportPdf(); return; }
-  }
+  if(mode==="alumno") tpvClick(t); else if(typeof teacherClick==="function") teacherClick(t);
 });
-document.addEventListener("change", ev=>{
-  const t=ev.target;
-  if(t.dataset && t.dataset.check){ const k=t.dataset.check; S[k] = t.checked ? S[k].concat(t.value) : S[k].filter(x=>x!==t.value); persist(); render(); return; }
-  if(t.id==="mesa"){ draft.mesa=t.value; return; }
-  if(t.id==="fAlumno"){ teacher.form.alumno=t.value; return; }
-  if(t.id==="fFecha"){ teacher.form.fecha=t.value; return; }
-  if(t.id==="filter"){ teacher.filter=t.value; render(); return; }
-});
-document.addEventListener("input", ev=>{
-  const t=ev.target;
-  if(t.id==="stuName"){ S.name=t.value.trim(); persist(); return; }
-  if(t.id==="nota"){ draft.nota=t.value; return; }
-  const map={fA:"faseA", fB:"faseB", fD:"faseD", fCom:"comandas", pasteCode:"_paste", fIncOk:"incOk", fIncTotal:"incTotal", fNotas:"notas"};
-  if(map[t.id]==="_paste"){ teacher.paste=t.value; return; }
-  if(map[t.id]) teacher.form[map[t.id]]=t.value;
-});
-document.addEventListener("keydown", ev=>{ if(ev.key==="Enter" && ev.target.id==="newStudent"){ ev.preventDefault(); $("#addStudent").click(); } });
+document.addEventListener("change", ev=>{ if(mode==="alumno") tpvChange(ev.target); else if(typeof teacherChange==="function") teacherChange(ev.target); });
+document.addEventListener("input", ev=>{ if(mode==="alumno") tpvInput(ev.target); else if(typeof teacherInput==="function") teacherInput(ev.target); });
+document.addEventListener("keydown", ev=>{ const g=ev.target.dataset&&ev.target.dataset.newmember; if(ev.key==="Enter" && g){ ev.preventDefault(); document.querySelector(`[data-addmember="${g}"]`).click(); } });
+// Refresca los minutos de barra y cocina sin molestar si alguien está escribiendo
+setInterval(()=>{ if(mode==="alumno" && ["barra","cocina"].includes(STEPS[S.step][0]) && !document.activeElement.matches("input,textarea,select")) render(); }, 30000);
 
-/* ---------- Arranque ---------- */
 render();
-(async ()=>{
-  const C = window.claude;
-  if(!C || !C.use) return;
-  const [user, db, dl] = await Promise.all([C.use("user").catch(()=>null), C.use("db").catch(()=>null), C.use("downloads").catch(()=>null)]);
-  downloads = dl;
-  const owner = user ? await user.isOwner().catch(()=>false) : false;
-  if(!owner) return;
-  store = db ? dbStore(db) : localStore();
-  store.watch("alumnos", l=>{ teacher.students=l.sort((a,b)=>a.nombre.localeCompare(b.nombre,"es")); if(mode==="docente") render(); });
-  store.watch("evaluaciones", l=>{ teacher.evals=l; if(mode==="docente") render(); });
-  $("#modeSwitch").hidden=false;
-})();
 </script>
-
 </body>
 </html>
