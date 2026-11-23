@@ -186,6 +186,9 @@ nav.phases .badge{position:absolute;top:4px;right:4px;min-width:20px;height:20px
   nav.phases{grid-template-columns:repeat(3,minmax(0,1fr))}
   .member{grid-template-columns:minmax(0,1fr) auto;}
 }
+.sync-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--muted);margin-right:8px;vertical-align:middle}
+.sync-dot[data-state="ok"]{background:var(--ok)}
+.sync-dot[data-state="lost"]{background:var(--bad)}
 </style>
 
 <div class="wrap">
@@ -203,6 +206,9 @@ nav.phases .badge{position:absolute;top:4px;right:4px;min-width:20px;height:20px
   <main id="app"></main>
 </div>
 <div class="toast" id="toast" role="status" hidden></div>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-app-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-database-compat.js"></script>
+<script>window.MORERAS_FIREBASE = {"databaseURL":"https://las-moreras-default-rtdb.europe-west1.firebasedatabase.app","projectId":"las-moreras"};</script>
 <script>
 "use strict";
 /* =========================================================
@@ -349,17 +355,19 @@ function render(){
   if(ms){ ms.setAttribute("aria-pressed", mode==="alumno"); mt.setAttribute("aria-pressed", mode==="docente"); }
   if(mode==="docente" && typeof renderTeacher==="function"){ $("#app").innerHTML = renderTeacher(); return; }
   const badges = {barra:pending("barra"), cocina:pending("cocina")};
-  const nav = `<nav class="phases" aria-label="Pantallas del TPV">${STEPS.map(([k,n,l],i)=>`<button type="button" data-go="${i}" ${S.step===i?'aria-current="step"':''}><b>${l}</b>${n}${badges[k]?`<span class="badge" aria-label="${badges[k]} pendientes">${badges[k]}</span>`:''}</button>`).join("")}</nav>`;
+  const allowed = SYNC.on ? STEPS_BY_PUESTO[L.puesto] : null;
+  const nav = `<nav class="phases" aria-label="Pantallas del TPV" ${allowed?'style="grid-template-columns:repeat('+(allowed.length+1)+',minmax(0,1fr))"':''}>${STEPS.map(([k,n,l],i)=>(allowed && k!=="equipo" && !allowed.includes(k))?"":`<button type="button" data-go="${i}" ${S.step===i?'aria-current="step"':''}><b>${l}</b>${n}${badges[k]?`<span class="badge" aria-label="${badges[k]} pendientes">${badges[k]}</span>`:''}</button>`).join("")}</nav>`;
   const rb = groupsReady() ? `<div class="rotbar">Rotación ${S.rot} de ${S.nRot}<span class="muted" style="font-weight:400">${Object.entries(rolesOf(S.rot)).map(([r,n])=>`${ROLES[r]}: ${n.map(esc).join(", ")}`).join(" · ")}</span></div>` : "";
   const views = {equipo:vEquipo, a:vFaseA, sala:vSala, barra:()=>vStation("barra"), cocina:()=>vStation("cocina"), caja:vCaja, inc:vInc, d:vCierre, resumen:vResumen};
-  $("#app").innerHTML = nav + `<section class="stack">${S.step>0?rb:""}${views[STEPS[S.step][0]]()}</section>`;
+  $("#app").innerHTML = nav + `<section class="stack">${syncBar()}${S.step>0?rb:""}${views[STEPS[S.step][0]]()}</section>`;
 }
 function go(k){ S.step = STEPS.findIndex(s=>s[0]===k); persist(); render(); window.scrollTo({top:0}); }
 
 /* ---------- Equipo ---------- */
 function vEquipo(){
   const rots = Array.from({length:S.nRot},(_,i)=>i+1);
-  return `<div class="card stack">
+  if(SYNC.on && L.puesto!=="todo") return vConexion();
+  return `${vConexion()}<div class="card stack">
     <div><div class="eyebrow">Antes de empezar</div><h2>Grupos y rotaciones</h2></div>
     <p>Este dispositivo es el TPV de Las Moreras. Los 4 grupos rotan por sala, barra, cocina y clientes, y cada puesto usa su pantalla del TPV.</p>
     <label class="field"><span>Nombre de la sesión (opcional)</span><input type="text" id="teamName" value="${esc(S.team)}" placeholder="Ej.: Simulación 27 de noviembre"></label>
@@ -627,13 +635,14 @@ function vResumen(){
 
 /* ---------- Eventos del TPV ---------- */
 function tpvClick(t){
+  if(syncClick(t)) return true;
   if(t.dataset.go!=null){ S.step=+t.dataset.go; persist(); render(); window.scrollTo({top:0}); return true; }
   if(t.dataset.goto){ if(t.dataset.goto==="caja" && draft.mesa && openOrders(draft.mesa).length){ startPay(draft.mesa); } go(t.dataset.goto); return true; }
   // Equipo
-  if(t.dataset.addmember){ const gid=t.dataset.addmember, i=document.querySelector(`[data-newmember="${gid}"]`), n=i.value.trim(); if(!n){ i.focus(); return true; } S.groups.find(g=>g.id===gid).members.push(n); persist(); render(); document.querySelector(`[data-newmember="${gid}"]`).focus(); return true; }
-  if(t.dataset.delmember){ S.groups.find(g=>g.id===t.dataset.delmember).members.splice(+t.dataset.i,1); persist(); render(); return true; }
-  if(t.dataset.nrot){ S.nRot=+t.dataset.nrot; if(S.rot>S.nRot) S.rot=S.nRot; persist(); render(); return true; }
-  if(t.dataset.setrot){ S.rot=+t.dataset.setrot; persist(); render(); toast("Ahora estáis en la rotación "+S.rot); return true; }
+  if(t.dataset.addmember){ const gid=t.dataset.addmember, i=document.querySelector(`[data-newmember="${gid}"]`), n=i.value.trim(); if(!n){ i.focus(); return true; } S.groups.find(g=>g.id===gid).members.push(n); share("cfg"); render(); document.querySelector(`[data-newmember="${gid}"]`).focus(); return true; }
+  if(t.dataset.delmember){ S.groups.find(g=>g.id===t.dataset.delmember).members.splice(+t.dataset.i,1); share("cfg"); render(); return true; }
+  if(t.dataset.nrot){ S.nRot=+t.dataset.nrot; if(S.rot>S.nRot) S.rot=S.nRot; share("cfg"); render(); return true; }
+  if(t.dataset.setrot){ S.rot=+t.dataset.setrot; share("cfg"); render(); toast("Ahora estáis en la rotación "+S.rot); return true; }
   // Sala
   if(t.dataset.mesa){ draft = blankDraft(t.dataset.mesa); render(); return true; }
   if(t.dataset.add){ draft.lines[t.dataset.add]=(draft.lines[t.dataset.add]||0)+1; render(); toast("Añadido: "+item(t.dataset.add).n); return true; }
@@ -648,14 +657,19 @@ function tpvClick(t){
     const risky = lines.some(l=>item(l.pid).a.some(a=>draft.allergies.includes(a)));
     const st = {}, tm = {};
     lines.forEach(l=>{ const s=lineStation(l); st[s]="nuevo"; tm[s]={}; });
-    S.nOrder++;
-    S.orders.push({id:uid(), n:S.nOrder, mesa:draft.mesa, t:Date.now(), rot:S.rot, lines, obs:draft.obs.trim(), asked:draft.asked, allergies:draft.allergies, risky, st, tm, paid:false});
-    persist(); const msg = Object.keys(st).map(s=>s==="barra"?"barra":"cocina").join(" y ");
-    draft = blankDraft(draft.mesa); render(); toast("Comanda enviada a "+msg); return true;
+    const sent = draft; draft = blankDraft(draft.mesa);
+    const btn = t; btn.disabled = true;
+    nextCounter("nOrder").then(n=>{
+    const id = uid();
+    S.orders.push({id, n, mesa:sent.mesa, t:Date.now(), rot:S.rot, lines, obs:sent.obs.trim(), asked:sent.asked, allergies:sent.allergies, risky, st, tm, paid:false});
+    share("order", id); const msg = Object.keys(st).map(s=>s==="barra"?"barra":"cocina").join(" y ");
+    render(); toast("Comanda nº "+n+" enviada a "+msg);
+    }).catch(()=>{ draft = sent; btn.disabled=false; toast("No se ha podido enviar. Revisa la conexión y vuelve a intentarlo."); });
+    return true;
   }
-  if(t.dataset.served){ const o=S.orders.find(x=>x.id===t.dataset.served); o.st[t.dataset.st]="servido"; o.tm[t.dataset.st].servido=Date.now(); persist(); render(); toast("Servido en "+o.mesa); return true; }
+  if(t.dataset.served){ const o=S.orders.find(x=>x.id===t.dataset.served); o.st[t.dataset.st]="servido"; o.tm[t.dataset.st].servido=Date.now(); share("order", o.id); render(); toast("Servido en "+o.mesa); return true; }
   // Barra / cocina
-  if(t.dataset.adv){ const o=S.orders.find(x=>x.id===t.dataset.adv), st=t.dataset.st; o.st[st]=t.dataset.to; o.tm[st][t.dataset.to]=Date.now(); persist(); render(); return true; }
+  if(t.dataset.adv){ const o=S.orders.find(x=>x.id===t.dataset.adv), st=t.dataset.st; o.st[st]=t.dataset.to; o.tm[st][t.dataset.to]=Date.now(); share("order", o.id); render(); return true; }
   // Caja
   if(t.dataset.paymesa){ startPay(t.dataset.paymesa); render(); return true; }
   if(t.id==="cancelPay"){ pay=null; render(); return true; }
@@ -674,7 +688,7 @@ function tpvClick(t){
     if(pay.cashGiven<amt){ toast("El cliente aún no ha entregado suficiente."); return true; }
     if(isNaN(ch)){ toast("Escribid el cambio que vais a devolver."); return true; }
     const real = r2(pay.cashGiven-amt);
-    if(ch!==real){ S.cashErr++; S.cashErrRot=S.cashErrRot||{}; S.cashErrRot[S.rot]=(S.cashErrRot[S.rot]||0)+1; persist(); pay.changeOk=false; render(); return true; }
+    if(ch!==real){ const rot=S.rot; bump("cashErr/"+rot, ()=>{ S.cashErrRot=S.cashErrRot||{}; S.cashErrRot[rot]=(S.cashErrRot[rot]||0)+1; }); pay.changeOk=false; render(); return true; }
     pay.pagos.push({medio:"efectivo", importe:amt, entregado:pay.cashGiven, cambio:real});
     pay.method=null; pay.cashGiven=0; pay.changeIn=""; pay.changeOk=null; pay.cashAmt="";
     render(); toast("Cambio correcto: "+eur(real)+". Contadlo en voz alta al entregarlo."); return true;
@@ -699,41 +713,43 @@ function tpvClick(t){
     render(); return true;
   }
   if(t.id==="closeTicket"){
-    const orders = openOrders(pay.mesa);
-    S.nTicket++;
-    const tk = {num:`T${String(S.nTicket).padStart(4,"0")}`, fecha:today(), hora:hhmm(Date.now()), mesa:pay.mesa, tipo:pay.tipo, cliente:pay.cliente, lines:aggLines(orders), total:pay.total, pagos:pay.pagos, rot:S.rot};
-    S.tickets.push(tk); orders.forEach(o=>o.paid=true); persist();
-    pay=null; render(); toast("Tique "+tk.num+" emitido. Mesa libre."); return true;
+    const orders = openOrders(pay.mesa), P = pay; t.disabled = true;
+    nextCounter("nTicket").then(n=>{
+    const tk = {id:uid(), num:`T${String(n).padStart(4,"0")}`, fecha:today(), hora:hhmm(Date.now()), mesa:P.mesa, tipo:P.tipo, cliente:P.cliente, lines:aggLines(orders), total:P.total, pagos:P.pagos, rot:S.rot};
+    S.tickets.push(tk); share("ticket", tk.id); orders.forEach(o=>{ o.paid=true; share("order", o.id); });
+    pay=null; render(); toast("Tique "+tk.num+" emitido. Mesa libre.");
+    }).catch(()=>{ t.disabled=false; toast("No se ha podido emitir el tique. Revisa la conexión."); });
+    return true;
   }
   // Incidencias
-  if(t.dataset.opt!=null){ S._pick=+t.dataset.opt; S.inc[S.incOrder[S.incPos]]=S._opts.list[S._pick].c; persist(); render(); return true; }
+  if(t.dataset.opt!=null){ S._pick=+t.dataset.opt; S.inc[S.incOrder[S.incPos]]=S._opts.list[S._pick].c; share("inc"); render(); return true; }
   if(t.id==="incNext"){ S.incPos++; S._pick=null; S._opts=null; persist(); render(); return true; }
-  if(t.id==="incRestart"){ S.inc={}; S.incPos=0; S.incOrder=shuffle(INCIDENCIAS.map((_,i)=>i)); S._pick=null; S._opts=null; persist(); render(); return true; }
+  if(t.id==="incRestart"){ S.inc={}; share("inc"); S.incPos=0; S.incOrder=shuffle(INCIDENCIAS.map((_,i)=>i)); S._pick=null; S._opts=null; persist(); render(); return true; }
   // Cierre
-  if(t.id==="doArqueo"){ const c=num($("#contado").value); if(isNaN(c)){ toast("Escribid el efectivo contado."); return true; } const e=r2(S.caja+cashIn()); S.arqueo={contado:c, esperado:e, diff:r2(c-e)}; persist(); render(); return true; }
+  if(t.id==="doArqueo"){ const c=num($("#contado").value); if(isNaN(c)){ toast("Escribid el efectivo contado."); return true; } const e=r2(S.caja+cashIn()); S.arqueo={contado:c, esperado:e, diff:r2(c-e)}; share("arqueo"); render(); return true; }
   // Resumen
   if(t.id==="copyCode"){ const box=$("#codeBox");
     try{ navigator.clipboard.writeText(box.value).then(()=>toast("Código copiado. Pegadlo en un mensaje a vuestro docente."), ()=>{ box.focus(); box.select(); toast("Mantened pulsado el código y elegid Copiar."); }); }
     catch(e){ box.focus(); box.select(); toast("Mantened pulsado el código y elegid Copiar."); } return true; }
-  if(t.id==="resetAsk"){ $("#resetBox").innerHTML=`<span>¿Seguro? Se borrará todo el turno de este dispositivo.</span><button type="button" class="btn danger" id="resetYes">Sí, empezar de nuevo</button><button type="button" class="btn ghost" id="resetNo">No</button>`; return true; }
-  if(t.id==="resetYes"){ S=FRESH(); draft=blankDraft("Mesa 1"); pay=null; persist(); render(); return true; }
+  if(t.id==="resetAsk"){ $("#resetBox").innerHTML=`<span>${SYNC.on?"¿Seguro? Este dispositivo saldrá de la sesión y empezará un turno nuevo.":"¿Seguro? Se borrará todo el turno de este dispositivo."}</span><button type="button" class="btn danger" id="resetYes">Sí, empezar de nuevo</button><button type="button" class="btn ghost" id="resetNo">No</button>`; return true; }
+  if(t.id==="resetYes"){ if(SYNC.on) disconnect(); S=FRESH(); draft=blankDraft("Mesa 1"); pay=null; persist(); render(); return true; }
   if(t.id==="resetNo"){ render(); return true; }
   return false;
 }
 function resolveCard(){
   const deny = pay.forceDeny;
-  if(deny){ S.cardDenied++; persist(); pay.forceDeny=false; return {stage:"ko"}; }
+  if(deny){ bump("cardDenied", ()=>{ S.cardDenied=(S.cardDenied||0)+1; }); pay.forceDeny=false; return {stage:"ko"}; }
   return {stage:"ok", aut:String(Math.floor(100000+Math.random()*899999)), last4:String(Math.floor(1000+Math.random()*8999))};
 }
 function tpvChange(t){
-  if(t.dataset && t.dataset.check){ const k=t.dataset.check; S[k] = t.checked ? S[k].concat(t.value) : S[k].filter(x=>x!==t.value); persist(); render(); return true; }
-  if(t.dataset && t.dataset.grole){ S.groups.find(g=>g.id===t.dataset.grole).roles[t.dataset.rot]=t.value; persist(); render(); return true; }
+  if(t.dataset && t.dataset.check){ const k=t.dataset.check; S[k] = t.checked ? S[k].concat(t.value) : S[k].filter(x=>x!==t.value); share(k); render(); return true; }
+  if(t.dataset && t.dataset.grole){ S.groups.find(g=>g.id===t.dataset.grole).roles[t.dataset.rot]=t.value; share("cfg"); render(); return true; }
   if(t.id==="forceDeny"){ pay.forceDeny=t.checked; return true; }
-  if(t.id==="cajaIni"){ const v=num(t.value); if(!isNaN(v)&&v>=0){ S.caja=v; persist(); } else toast("Escribid el cambio inicial en euros, por ejemplo 100."); return true; }
+  if(t.id==="cajaIni"){ const v=num(t.value); if(!isNaN(v)&&v>=0){ S.caja=v; share("cfg"); } else toast("Escribid el cambio inicial en euros, por ejemplo 100."); return true; }
   return false;
 }
 function tpvInput(t){
-  if(t.id==="teamName"){ S.team=t.value.trim(); persist(); return true; }
+  if(t.id==="teamName"){ S.team=t.value.trim(); clearTimeout(tpvInput.h); tpvInput.h=setTimeout(()=>share("cfg"),600); persist(); return true; }
   if(t.dataset && t.dataset.nota){ draft.notas[t.dataset.nota]=t.value; return true; }
   if(t.id==="obs"){ draft.obs=t.value; return true; }
   if(t.id==="cNombre"){ pay.cliente.nombre=t.value; return true; }
@@ -756,6 +772,124 @@ document.addEventListener("keydown", ev=>{ const g=ev.target.dataset&&ev.target.
 // Refresca los minutos de barra y cocina sin molestar si alguien está escribiendo
 setInterval(()=>{ if(mode==="alumno" && ["barra","cocina"].includes(STEPS[S.step][0]) && !document.activeElement.matches("input,textarea,select")) render(); }, 30000);
 
+/* ---------- Sincronización entre dispositivos (Firebase Realtime Database) ---------- */
+const FIREBASE_CONFIG = window.MORERAS_FIREBASE || null;
+let L = Object.assign({code:"", puesto:"todo"}, load("moreras-device", {}));
+const saveL = () => save("moreras-device", L);
+const SYNC = {on:false, db:null, ref:null, status:"off", pendingRender:false};
+const PUESTOS = {todo:["Todo en este dispositivo","Equipo, preparación, sala, barra, cocina, caja y cierre"], sala:["Comandero de sala","Toma de comandas, caja e incidencias"], barra:["TPV de barra","Notas de pedido de bebidas"], cocina:["TPV de cocina","Notas de pedido de comidas"]};
+const STEPS_BY_PUESTO = {todo:null, sala:["sala","caja","inc"], barra:["barra"], cocina:["cocina"]};
+const firebaseReady = () => !!(FIREBASE_CONFIG && window.firebase && firebase.database);
+
+function normOrder(o){
+  o.lines = o.lines||[]; o.allergies = o.allergies||[]; o.st = o.st||{}; o.tm = o.tm||{};
+  Object.keys(o.st).forEach(s=>{ o.tm[s]=o.tm[s]||{}; }); o.obs=o.obs||""; o.paid=!!o.paid; return o;
+}
+function applyRemote(v){
+  v = v||{};
+  const cfg = v.cfg||{};
+  S.team = cfg.team||""; S.nRot = cfg.nRot||2; S.rot = cfg.rot||1; S.caja = cfg.caja!=null?cfg.caja:100; S.fecha = cfg.fecha||S.fecha;
+  S.groups = (cfg.groups||freshGroups()).map(g=>({id:g.id, name:g.name, members:g.members||[], roles:g.roles||{}}));
+  S.a = v.a||[]; S.d = v.d||[]; S.inc = v.inc||{}; S.arqueo = v.arqueo||null;
+  S.orders = Object.values(v.orders||{}).map(normOrder).sort((a,b)=>a.t-b.t);
+  S.tickets = Object.values(v.tickets||{}).map(t=>Object.assign({pagos:[], lines:[], cliente:{}}, t)).sort((a,b)=>a.num.localeCompare(b.num));
+  S.cashErrRot = v.cashErr||{}; S.cardDenied = v.cardDenied||0; S.nOrder = v.nOrder||0; S.nTicket = v.nTicket||0;
+  persist();
+  const a = document.activeElement;
+  if(a && a.matches && a.matches("input,textarea,select")){ SYNC.pendingRender=true; return; }
+  render();
+}
+document.addEventListener("focusout", ()=>{ if(SYNC.pendingRender){ SYNC.pendingRender=false; setTimeout(()=>{ const a=document.activeElement; if(!(a&&a.matches&&a.matches("input,textarea,select"))) render(); else SYNC.pendingRender=true; }, 50); } });
+
+function connect(code){
+  if(!firebaseReady()){ toast("La conexión entre dispositivos no está disponible. Revisa internet."); return false; }
+  try{
+    if(!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+    SYNC.db = firebase.database();
+    if(SYNC.ref) SYNC.ref.off();
+    SYNC.ref = SYNC.db.ref("s/"+code);
+    SYNC.on = true; L.code = code; saveL();
+    SYNC.db.ref(".info/connected").on("value", s=>{ SYNC.status = s.val() ? "ok" : "lost"; const b=$("#syncDot"); if(b) b.dataset.state=SYNC.status; });
+    SYNC.ref.on("value", snap=>applyRemote(snap.val()), err=>{ toast("No se puede leer la sesión: "+(err&&err.code||"error")); });
+    return true;
+  }catch(e){ toast("No se ha podido conectar."); return false; }
+}
+function disconnect(){ if(SYNC.ref) SYNC.ref.off(); SYNC.on=false; SYNC.ref=null; L.code=""; L.puesto="todo"; saveL(); }
+function newCode(){ const A="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let c=""; for(let i=0;i<5;i++) c+=A[Math.floor(Math.random()*A.length)]; return c; }
+function cfgOf(){ return {team:S.team, nRot:S.nRot, rot:S.rot, caja:S.caja, fecha:S.fecha, groups:S.groups.map(g=>({id:g.id,name:g.name,members:g.members,roles:g.roles}))}; }
+async function createSession(){
+  if(!firebaseReady()){ toast("La conexión entre dispositivos no está disponible. Revisa internet."); return; }
+  const code = newCode();
+  if(!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+  const clean = v => JSON.parse(JSON.stringify(v));
+  const orders = {}; S.orders.forEach(o=>orders[o.id]=clean(o));
+  const tickets = {}; S.tickets.forEach(t=>tickets[t.id||t.num]=clean(Object.assign({id:t.id||t.num},t)));
+  try{
+    await firebase.database().ref("s/"+code).set({creado:Date.now(), cfg:cfgOf(), a:S.a, d:S.d, inc:S.inc, arqueo:S.arqueo, orders, tickets, nOrder:S.nOrder, nTicket:S.nTicket, cashErr:S.cashErrRot||{}, cardDenied:S.cardDenied||0});
+  }catch(e){ toast("No se ha podido crear la sesión. Revisa internet."); return; }
+  connect(code); toast("Sesión "+code+" creada"); render();
+}
+async function joinSession(code){
+  code = String(code||"").trim().toUpperCase();
+  if(!/^[A-Z0-9]{5}$/.test(code)){ toast("El código de sesión tiene 5 caracteres."); return; }
+  if(!firebaseReady()){ toast("La conexión entre dispositivos no está disponible. Revisa internet."); return; }
+  if(!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+  try{ const s = await firebase.database().ref("s/"+code+"/creado").get(); if(!s.exists()){ toast("No existe ninguna sesión con el código "+code+"."); return; } }
+  catch(e){ toast("No se ha podido comprobar la sesión. Revisa internet."); return; }
+  connect(code); toast("Conectado a la sesión "+code); render();
+}
+
+/* Escritura: en local guarda en el navegador; conectado, escribe solo la parte cambiada */
+const clean = v => v===undefined ? null : JSON.parse(JSON.stringify(v));
+function share(part, id){
+  persist();
+  if(!SYNC.on) return;
+  const r = SYNC.ref;
+  if(part==="cfg") r.child("cfg").set(clean(cfgOf()));
+  else if(part==="order"){ const o=S.orders.find(x=>x.id===id); if(o) r.child("orders/"+id).set(clean(o)); }
+  else if(part==="ticket"){ const t=S.tickets.find(x=>x.id===id); if(t) r.child("tickets/"+id).set(clean(t)); }
+  else r.child(part).set(clean(S[part]));
+}
+async function nextCounter(name){
+  if(!SYNC.on){ S[name]=(S[name]||0)+1; persist(); return S[name]; }
+  const res = await SYNC.ref.child(name).transaction(v=>(v||0)+1);
+  return res.snapshot.val();
+}
+function bump(path, local){
+  if(!SYNC.on){ local(); persist(); return; }
+  SYNC.ref.child(path).transaction(v=>(v||0)+1);
+}
+
+function syncBar(){
+  if(!SYNC.on) return "";
+  const p = PUESTOS[L.puesto]||PUESTOS.todo;
+  return `<div class="rotbar" style="justify-content:space-between;background:var(--brass-soft)"><span><span id="syncDot" data-state="${SYNC.status}" class="sync-dot"></span>Sesión <b>${esc(L.code)}</b> · ${esc(p[0])}</span><button type="button" class="btn small ghost" id="changePuesto">Cambiar puesto</button></div>`;
+}
+function vConexion(){
+  if(!FIREBASE_CONFIG) return "";
+  if(SYNC.on){
+    return `<div class="card stack"><h3>Varios dispositivos</h3>
+      <p>Este dispositivo está en la sesión <b style="font-size:1.4rem;letter-spacing:.12em">${esc(L.code)}</b>. Para conectar otro, abre la app en él, pulsa <b>Unirse con código</b> y escribe este código.</p>
+      <div class="field"><span>¿Qué es este dispositivo?</span><div class="options">${Object.entries(PUESTOS).map(([k,[n,d]])=>`<button type="button" class="option ${L.puesto===k?'right':''}" data-puesto="${k}"><b>${n}</b><br><span class="muted">${d}</span></button>`).join("")}</div></div>
+      <div id="leaveBox" class="confirm-row"><button type="button" class="btn ghost" id="leaveAsk">Salir de la sesión</button></div></div>`;
+  }
+  return `<div class="card stack"><h3>¿Vais a usar varios dispositivos?</h3>
+    <p>Por ejemplo, un móvil como comandero y un ordenador en barra y otro en cocina. Uno crea la sesión y los demás se unen con su código. Necesitan conexión a internet.</p>
+    <div class="row"><button type="button" class="btn" id="createSess">Crear sesión</button></div>
+    <div class="row"><input type="text" id="joinCode" placeholder="Código, ej. K7P2Q" autocapitalize="characters" style="flex:1;min-width:0;text-transform:uppercase;letter-spacing:.1em"><button type="button" class="btn ghost" id="joinSess">Unirse con código</button></div></div>`;
+}
+function syncClick(t){
+  if(t.id==="createSess"){ createSession(); return true; }
+  if(t.id==="joinSess"){ joinSession($("#joinCode").value); return true; }
+  if(t.dataset.puesto){ L.puesto=t.dataset.puesto; saveL(); const allowed=STEPS_BY_PUESTO[L.puesto]; if(allowed) S.step=STEPS.findIndex(s=>s[0]===allowed[0]); persist(); render(); toast("Este dispositivo es ahora: "+PUESTOS[L.puesto][0]); return true; }
+  if(t.id==="changePuesto"){ S.step=0; persist(); render(); window.scrollTo({top:0}); return true; }
+  if(t.id==="leaveAsk"){ $("#leaveBox").innerHTML=`<span>Este dispositivo dejará de recibir comandas. La sesión sigue en los demás.</span><button type="button" class="btn danger" id="leaveYes">Salir</button><button type="button" class="btn ghost" id="leaveNo">No</button>`; return true; }
+  if(t.id==="leaveYes"){ disconnect(); render(); toast("Has salido de la sesión"); return true; }
+  if(t.id==="leaveNo"){ render(); return true; }
+  return false;
+}
+
+if(L.code && FIREBASE_CONFIG) connect(L.code);
 render();
 </script>
 </body>
