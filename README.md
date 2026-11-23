@@ -1,4 +1,6 @@
-# Simulador TPV «Las Moreras»
+# Simulador TPV «Las Moreras» (versión Beta V0)
+
+Versión de prueba: puede contener errores y vulnerabilidades.
 
 Simulador de servicio de bar y restaurante para la formación HOTR0208 (Operaciones básicas de restaurante y bar).
 

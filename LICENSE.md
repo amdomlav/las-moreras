@@ -1,4 +1,4 @@
-# Licencia de uso · Simulador TPV «Las Moreras»
+# Licencia de uso · Simulador TPV «Las Moreras» (versión Beta V0)
 
 © 2026 Ángel Manuel Domínguez Lavado. Todos los derechos reservados.
 
@@ -26,9 +26,9 @@ Quien desee desarrollar una nueva versión o una versión profesional debe poner
 
 Cualquier distribución o comercialización no autorizada restringe de forma automática la licencia de uso. El titular se reserva el ejercicio de todas las acciones legales oportunas, incluida la reclamación de una indemnización económica por los daños y perjuicios causados, conforme al texto refundido de la Ley de Propiedad Intelectual (Real Decreto Legislativo 1/1996).
 
-## 7. Versión beta
+## 7. Versión Beta V0 y seguridad
 
-La aplicación se ofrece tal cual, como versión de prueba. El titular no garantiza su funcionamiento continuo ni responde de la pérdida de datos. Las evaluaciones se guardan en el navegador del dispositivo del docente, por lo que conviene descargar copias de seguridad.
+La aplicación es una versión Beta V0, de prueba, y se ofrece tal cual. No ha pasado ninguna auditoría de seguridad y puede contener errores y vulnerabilidades. Por ejemplo, la clave del modo docente es una protección básica y las sesiones con varios dispositivos usan una base de datos de prueba. El titular no garantiza su funcionamiento continuo ni su seguridad, y no responde de la pérdida, la alteración o el acceso no autorizado a los datos. Las evaluaciones se guardan en el navegador del dispositivo del docente, por lo que conviene descargar copias de seguridad.
 
 ## 8. Advertencia sobre datos personales y descargo de responsabilidad
 
