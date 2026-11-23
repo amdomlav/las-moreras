@@ -30,3 +30,7 @@ Cualquier distribución o comercialización no autorizada restringe de forma aut
 
 La aplicación se ofrece tal cual, como versión de prueba. El titular no garantiza su funcionamiento continuo ni responde de la pérdida de datos. Las evaluaciones se guardan en el navegador del dispositivo del docente, por lo que conviene descargar copias de seguridad.
 
+## 8. Advertencia sobre datos personales y descargo de responsabilidad
+
+La aplicación no se ha desarrollado con fines de recopilación ni de tratamiento de datos personales o sensibles. El único dato personal que debe introducirse es el nombre y los apellidos del alumnado. No deben introducirse otros datos personales (DNI, teléfono, correo electrónico, domicilio, datos de salud u otros) ni en los nombres, ni en las observaciones de la evaluación, ni en los formularios de la simulación. Los datos de clientes, alergias y facturas de la simulación deben ser ficticios. Los nombres del alumnado se guardan en el navegador de los dispositivos y, cuando se usan varios dispositivos conectados, en la base de datos de la sesión. El centro es responsable del uso que haga de la aplicación y del cumplimiento de la normativa de protección de datos (RGPD y LOPDGDD). El titular declina toda responsabilidad derivada de la introducción de datos distintos de los indicados o de cualquier uso contrario a esta licencia.
+
