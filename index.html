@@ -324,7 +324,10 @@ function render(){
   const nav = `<nav class="phases" aria-label="Pantallas del TPV" ${allowed?'style="grid-template-columns:repeat('+(allowed.length+1)+',minmax(0,1fr))"':''}>${STEPS.map(([k,n,l],i)=>(allowed && k!=="equipo" && !allowed.includes(k))?"":`<button type="button" data-go="${i}" ${S.step===i?'aria-current="step"':''}><b>${l}</b>${n}${badges[k]?`<span class="badge" aria-label="${badges[k]} pendientes">${badges[k]}</span>`:''}</button>`).join("")}</nav>`;
   const rb = groupsReady() ? `<div class="rotbar">Servicio abierto<span class="muted" style="font-weight:400">${whoLine()}</span></div>` : "";
   const views = {equipo:vEquipo, a:vFaseA, sala:vSala, barra:()=>vStation("barra"), cocina:()=>vStation("cocina"), caja:vCaja, d:vCierre, resumen:vResumen};
-  $("#app").innerHTML = nav + `<section class="stack">${syncBar()}${S.step>0?rb:""}${views[STEPS[S.step][0]]()}</section>`;
+  $("#app").innerHTML = nav + `<section class="stack">${syncBar()}${S.step>0?rb:""}${(S.step>0 && !S.abierto)?vCerrado():views[STEPS[S.step][0]]()}</section>`;
+}
+function vCerrado(){
+  return `<div class="card stack"><h2>El servicio no está abierto</h2><p>El docente tiene que abrir el servicio con su clave en la pantalla <b>Servicio</b>.</p>${(SYNC.on && L.puesto!=="todo")?"":`<div class="row"><button type="button" class="btn" data-goto="equipo">Ir a Servicio</button></div>`}</div>`;
 }
 function go(k){ S.step = STEPS.findIndex(s=>s[0]===k); persist(); render(); window.scrollTo({top:0}); }
 
@@ -343,7 +346,7 @@ function vEquipo(){
     <label class="field"><span>Cambio inicial en caja (€)</span><input type="text" inputmode="decimal" id="cajaIni" value="${String(S.caja).replace(".",",")}"></label>
   </div>
   ${groupsReady()?'':'<p class="muted">Añadid al menos un alumno en Sala, Barra y Cocina para abrir el servicio.</p>'}
-  <div class="next"><span></span><button type="button" class="btn" data-goto="a" ${groupsReady()?'':'disabled'}>Abrir el servicio</button></div>`;
+  <div class="next"><span></span>${S.abierto?`<button type="button" class="btn" data-goto="a">Continuar el servicio</button>`:`<button type="button" class="btn" id="openService" ${groupsReady()?'':'disabled'}>Abrir el servicio (clave del docente)</button>`}</div>`;
 }
 
 /* ---------- Fase A ---------- */
@@ -667,7 +670,8 @@ function tpvClick(t){
     try{ navigator.clipboard.writeText(box.value).then(()=>toast("Código copiado. Pegadlo en un mensaje a vuestro docente."), ()=>{ box.focus(); box.select(); toast("Mantened pulsado el código y elegid Copiar."); }); }
     catch(e){ box.focus(); box.select(); toast("Mantened pulsado el código y elegid Copiar."); } return true; }
   if(t.id==="resetAsk"){ $("#resetBox").innerHTML=`<span>${SYNC.on?"¿Habéis enviado el código? Este dispositivo saldrá de la sesión y empezará un servicio nuevo vacío.":"¿Habéis enviado el código? Se borrará este servicio y empezará uno nuevo vacío."}</span><button type="button" class="btn danger" id="resetYes">Sí, servicio nuevo</button><button type="button" class="btn ghost" id="resetNo">No</button>`; return true; }
-  if(t.id==="resetYes"){ if(SYNC.on) disconnect(); S=FRESH(); draft=blankDraft("Mesa 1"); pay=null; persist(); render(); return true; }
+  if(t.id==="resetYes"){ askKey("Abrir un servicio nuevo", ()=>{ if(SYNC.on) disconnect(); S=FRESH(); draft=blankDraft("Mesa 1"); pay=null; persist(); render(); toast("Servicio nuevo preparado"); }); return true; }
+  if(t.id==="openService"){ if(!groupsReady()) return true; askKey("Abrir el servicio", ()=>{ S.abierto=true; share("cfg"); go("a"); toast("Servicio abierto"); }); return true; }
   if(t.id==="resetNo"){ render(); return true; }
   return false;
 }
@@ -723,7 +727,7 @@ function normOrder(o){
 function applyRemote(v){
   v = v||{};
   const cfg = v.cfg||{};
-  S.team = cfg.team||""; S.nRot = 1; S.rot = cfg.rot||1; S.caja = cfg.caja!=null?cfg.caja:100; S.fecha = cfg.fecha||S.fecha;
+  S.team = cfg.team||""; S.nRot = 1; S.rot = cfg.rot||1; S.caja = cfg.caja!=null?cfg.caja:100; S.abierto = !!cfg.abierto; S.fecha = cfg.fecha||S.fecha;
   S.groups = (cfg.groups||freshGroups()).map(g=>({id:g.id, name:g.name, members:g.members||[], roles:g.roles||{}}));
   S.a = v.a||[]; S.d = v.d||[]; S.arqueo = v.arqueo||null;
   S.orders = Object.values(v.orders||{}).map(normOrder).sort((a,b)=>a.t-b.t);
@@ -768,7 +772,7 @@ async function resetAll(){
 }
 function disconnect(){ if(SYNC.ref) SYNC.ref.off(); SYNC.on=false; SYNC.ref=null; L.code=""; L.puesto="todo"; saveL(); }
 function newCode(){ const A="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let c=""; for(let i=0;i<5;i++) c+=A[Math.floor(Math.random()*A.length)]; return c; }
-function cfgOf(){ return {team:S.team, nRot:S.nRot, rot:S.rot, caja:S.caja, fecha:S.fecha, groups:S.groups.map(g=>({id:g.id,name:g.name,members:g.members,roles:g.roles}))}; }
+function cfgOf(){ return {abierto:!!S.abierto, team:S.team, nRot:S.nRot, rot:S.rot, caja:S.caja, fecha:S.fecha, groups:S.groups.map(g=>({id:g.id,name:g.name,members:g.members,roles:g.roles}))}; }
 async function createSession(){
   if(!firebaseReady()){ toast("La conexión entre dispositivos no está disponible. Revisa internet."); return; }
   const code = newCode();
@@ -1069,7 +1073,17 @@ const UNLOCK = "moreras-docente";
 const isUnlocked = () => { try{ return !!KEY_HASH && sessionStorage.getItem(UNLOCK)===KEY_HASH; }catch(e){ return false; } };
 async function sha(text){ const b=await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)); return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join(""); }
 let keyMsg = "";
+let pendingKey = null;
+function askKey(label, fn){
+  if(!KEY_HASH){ fn(); return; }
+  pendingKey = {label, fn, back:mode}; keyMsg=""; mode="clave"; render(); window.scrollTo({top:0}); setTimeout(()=>{ const i=$("#keyIn"); if(i) i.focus(); },0);
+}
 function vClave(){
+  if(pendingKey) return `<div class="stack" style="max-width:460px"><div><div class="eyebrow">Clave del docente</div><h2>${esc(pendingKey.label)}</h2></div>
+    <div class="card stack"><p>Para continuar, el docente tiene que escribir su clave.</p>
+      <label class="field"><span>Clave</span><input type="password" id="keyIn" autocomplete="current-password"></label>
+      ${keyMsg}
+      <div class="row"><button type="button" class="btn" id="keyOk">Continuar</button><button type="button" class="btn ghost" id="backFromExtra">Cancelar</button></div></div></div>`;
   return `<div class="stack" style="max-width:460px"><div><div class="eyebrow">Acceso docente</div><h2>Modo docente</h2></div>
     <div class="card stack"><p>Escribe la clave del modo docente para evaluar los servicios y exportar los resultados.</p>
       <label class="field"><span>Clave</span><input type="password" id="keyIn" autocomplete="current-password"></label>
@@ -1081,6 +1095,7 @@ async function tryKey(){
   if(!v){ keyMsg=""; render(); return; }
   const h = await sha("las-moreras|"+v);
   if(h!==KEY_HASH){ keyMsg=`<div class="note bad">La clave no es correcta.</div>`; render(); setTimeout(()=>{ const i=$("#keyIn"); if(i) i.focus(); },0); return; }
+  if(pendingKey){ const p=pendingKey; pendingKey=null; keyMsg=""; mode=p.back==="clave"?"alumno":p.back; p.fn(); return; }
   try{ sessionStorage.setItem(UNLOCK, h); }catch(e){}
   keyMsg=""; $("#modeSwitch").hidden=false; mode="docente"; legal(); render(); loadLibs();
 }
@@ -1100,10 +1115,10 @@ function loadLibs(){
 function renderExtra(){ if(mode==="licencia") return vLicencia(); if(mode==="clave") return vClave(); return null; }
 let prevMode = "alumno";
 function extraClick(t){
-  if(t.id==="showLicense"){ if(mode!=="licencia") prevMode = mode==="clave" ? "alumno" : mode; mode="licencia"; render(); window.scrollTo({top:0}); return true; }
-  if(t.id==="teacherAccess"){ if(isUnlocked()){ $("#modeSwitch").hidden=false; mode="docente"; loadLibs(); } else { prevMode="alumno"; keyMsg=""; mode="clave"; } render(); window.scrollTo({top:0}); if(mode==="clave") setTimeout(()=>{ const i=$("#keyIn"); if(i) i.focus(); },0); return true; }
+  if(t.id==="showLicense"){ pendingKey=null; if(mode!=="licencia") prevMode = mode==="clave" ? "alumno" : mode; mode="licencia"; render(); window.scrollTo({top:0}); return true; }
+  if(t.id==="teacherAccess"){ pendingKey=null; if(isUnlocked()){ $("#modeSwitch").hidden=false; mode="docente"; loadLibs(); } else { prevMode="alumno"; keyMsg=""; mode="clave"; } render(); window.scrollTo({top:0}); if(mode==="clave") setTimeout(()=>{ const i=$("#keyIn"); if(i) i.focus(); },0); return true; }
   if(t.id==="keyOk"){ tryKey(); return true; }
-  if(t.id==="backFromExtra"){ mode=prevMode; render(); window.scrollTo({top:0}); return true; }
+  if(t.id==="backFromExtra"){ if(pendingKey){ mode=pendingKey.back; pendingKey=null; keyMsg=""; render(); return true; } mode=prevMode; render(); window.scrollTo({top:0}); return true; }
   if(t.id==="lockTeacher"){ try{ sessionStorage.removeItem(UNLOCK); }catch(e){} $("#modeSwitch").hidden=true; mode="alumno"; legal(); render(); toast("Modo docente cerrado"); return true; }
   return false;
 }
