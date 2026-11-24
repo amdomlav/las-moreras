@@ -671,7 +671,7 @@ function tpvClick(t){
     try{ navigator.clipboard.writeText(box.value).then(()=>toast("Código copiado. Pegadlo en un mensaje a vuestro docente."), ()=>{ box.focus(); box.select(); toast("Mantened pulsado el código y elegid Copiar."); }); }
     catch(e){ box.focus(); box.select(); toast("Mantened pulsado el código y elegid Copiar."); } return true; }
   if(t.id==="resetAsk"){ $("#resetBox").innerHTML=`<span>${SYNC.on?"¿Habéis enviado el código? Se borrará este servicio en todos los dispositivos conectados y habrá que volver a sincronizarlos.":"¿Habéis enviado el código? Se borrará este servicio y empezará uno nuevo vacío."}</span><button type="button" class="btn danger" id="resetYes">Sí, servicio nuevo</button><button type="button" class="btn ghost" id="resetNo">No</button>`; return true; }
-  if(t.id==="resetYes"){ askKey("Abrir un servicio nuevo", async ()=>{ await resetAll(); askSync=true; render(); window.scrollTo({top:0}); }); return true; }
+  if(t.id==="resetYes"){ askKey("Abrir un servicio nuevo", async ()=>{ await resetAll(); if(typeof unlockTeacher==="function" && window.MORERAS_STANDALONE){ unlockTeacher(); mode="docente"; teacher.tab="simulacion"; } render(); window.scrollTo({top:0}); }); return true; }
   if(t.id==="openService"){ if(!groupsReady()) return true; if(S.abierto){ go("a"); return true; } askKey("Abrir el servicio", ()=>{ S.abierto=true; share("cfg"); go("a"); toast("Servicio abierto"); }); return true; }
   if(t.id==="resetNo"){ render(); return true; }
   return false;
@@ -823,21 +823,20 @@ function syncBar(){
   return `<div class="rotbar" style="justify-content:space-between;background:var(--brass-soft)"><span><span id="syncDot" data-state="${SYNC.status}" class="sync-dot"></span>Sesión <b>${esc(L.code)}</b> · ${esc(p[0])}</span><button type="button" class="btn small ghost" id="changePuesto">Cambiar puesto</button></div>`;
 }
 /* Bloqueo: la simulación no se usa hasta que el docente la inicia (con o sin sincronizar) o el dispositivo se une con el código */
-let askSync = false;
+let askSync = false; // compatibilidad
+let entrada = "elegir"; // "elegir" o "simulacion"
 const simUnlocked = () => !FIREBASE_CONFIG || SYNC.on || L.solo;
 function vBloqueo(){
-  if(askSync) return `<div class="card stack" style="max-width:620px"><div class="eyebrow">Clave correcta</div><h2>¿Vais a sincronizar dispositivos?</h2>
-    <p>Por ejemplo, un móvil como comandero y un ordenador en barra y otro en cocina. Este dispositivo creará la sesión y te dará un código para conectar los demás. Necesitan internet.</p>
-    <div class="options"><button type="button" class="option" id="syncYes"><b>Sí, sincronizar dispositivos</b><br><span class="muted">Crear la sesión y conectar los demás con el código</span></button>
-    <button type="button" class="option" id="syncNo"><b>No, solo este dispositivo</b><br><span class="muted">Todo el servicio se hace en este TPV</span></button></div>
-    <div class="row"><button type="button" class="btn ghost" id="syncCancel">Cancelar</button></div></div>`;
-  return `<div class="stack" style="max-width:620px">
-    <div class="card stack"><div class="eyebrow">Simulación bloqueada</div><h2>Esperando al docente</h2>
-      <p>El docente tiene que iniciar el servicio con su clave y decidir si se sincronizan los dispositivos.</p>
-      <div class="row"><button type="button" class="btn" id="startService">Iniciar el servicio (clave del docente)</button></div></div>
-    <div class="card stack"><h3>Conectar este dispositivo a una sesión</h3>
-      <p>Si el docente ya ha iniciado el servicio en otro dispositivo, escribe aquí el código de la sesión.</p>
-      <div class="row"><input type="text" id="joinCode" placeholder="Código" autocapitalize="characters" style="flex:1;min-width:0;text-transform:uppercase;letter-spacing:.1em"><button type="button" class="btn ghost" id="joinSess">Unirse con código</button></div></div></div>`;
+  if(entrada==="simulacion") return `<div class="stack" style="max-width:620px">
+    <div class="card stack"><div class="eyebrow">Modo simulación · bloqueado</div><h2>Esperando al docente</h2>
+      <p>La simulación se desbloquea cuando el docente sincroniza los dispositivos. Escribe el código de la sesión que te dé el docente.</p>
+      <div class="row"><input type="text" id="joinCode" placeholder="Código" autocapitalize="characters" style="flex:1;min-width:0;text-transform:uppercase;letter-spacing:.1em"><button type="button" class="btn" id="joinSess">Conectar</button></div></div>
+    <div class="row"><button type="button" class="btn ghost" id="entradaVolver">Volver</button></div></div>`;
+  return `<div class="stack" style="max-width:620px"><div><div class="eyebrow">Bienvenida</div><h2>¿Cómo vas a entrar?</h2></div>
+    <div class="options">
+      <button type="button" class="option" id="entradaDocente"><b>Modo docente</b><br><span class="muted">Con clave. Iniciar y sincronizar la simulación, evaluar y exportar.</span></button>
+      <button type="button" class="option" id="entradaSim"><b>Modo simulación</b><br><span class="muted">Para el alumnado. Se desbloquea cuando el docente sincroniza los dispositivos.</span></button>
+    </div></div>`;
 }
 function vConexion(){
   if(!FIREBASE_CONFIG) return "";
@@ -851,10 +850,12 @@ function vConexion(){
 }
 function syncClick(t){
   if(t.id==="createSess"){ createSession(); return true; }
-  if(t.id==="startService"){ askKey("Iniciar el servicio", ()=>{ askSync=true; render(); }); return true; }
-  if(t.id==="syncYes"){ t.disabled=true; S.abierto=true; persist(); createSession().then(()=>{ if(SYNC.on) askSync=false; else { S.abierto=false; persist(); } render(); }); return true; }
-  if(t.id==="syncNo"){ askSync=false; L.solo=true; saveL(); S.abierto=true; S.step=0; persist(); render(); toast("Este dispositivo trabajará solo"); return true; }
-  if(t.id==="syncCancel"){ askSync=false; render(); return true; }
+  if(t.id==="entradaSim"){ entrada="simulacion"; render(); setTimeout(()=>{ const i=$("#joinCode"); if(i) i.focus(); },0); return true; }
+  if(t.id==="entradaVolver"){ entrada="elegir"; render(); return true; }
+  if(t.id==="entradaDocente"){ openTeacher(); return true; }
+  if(t.id==="syncYes"){ t.disabled=true; S.abierto=true; persist(); createSession().then(()=>{ if(SYNC.on){ mode="alumno"; S.step=0; persist(); } else { S.abierto=false; persist(); } render(); window.scrollTo({top:0}); }); return true; }
+  if(t.id==="syncNo"){ L.solo=true; saveL(); S.abierto=true; S.step=0; persist(); mode="alumno"; render(); window.scrollTo({top:0}); toast("Simulación iniciada en este dispositivo"); return true; }
+  if(t.id==="goSim"){ mode="alumno"; render(); window.scrollTo({top:0}); return true; }
   if(t.id==="joinSess"){ joinSession($("#joinCode").value); return true; }
   if(t.dataset.puesto){ L.puesto=t.dataset.puesto; saveL(); const allowed=STEPS_BY_PUESTO[L.puesto]; if(allowed) S.step=STEPS.findIndex(s=>s[0]===allowed[0]); persist(); render(); toast("Este dispositivo es ahora: "+PUESTOS[L.puesto][0]); return true; }
   if(t.id==="changePuesto"){ S.step=0; persist(); render(); window.scrollTo({top:0}); return true; }
@@ -877,7 +878,7 @@ const CRITERIOS = [
 const NIVELES = [["En proceso",1,4.9],["Adecuado",5,6.9],["Avanzado",7,8.9],["Excelente",9,10]];
 const nivel = v => { if(v==null||isNaN(v)) return ""; const n = NIVELES.find(([,a,b])=>v>=a && v<=b+0.0001); return n?n[0]:""; };
 const levelClass = v => ({"En proceso":"l1","Adecuado":"l2","Avanzado":"l2","Excelente":"l3"})[nivel(v)]||"";
-let teacher = {tab:"evaluar", sessions:[], paste:"", pasteMsg:"", draft:null, filter:"", confirmDel:null};
+let teacher = {tab:(window.MORERAS_STANDALONE?"simulacion":"evaluar"), sessions:[], paste:"", pasteMsg:"", draft:null, filter:"", confirmDel:null};
 let store = null, downloads = null;
 
 function avg(g){ const v=CRITERIOS.map(c=>g.notas[c.k]).filter(x=>x!=null&&!isNaN(x)); return v.length===4 ? Math.round(v.reduce((a,b)=>a+b,0)/4*10)/10 : null; }
@@ -890,9 +891,17 @@ function evidence(sess, role){
 }
 const puestoTxt = roles => roles.length===1 ? (ROLES[roles[0]]||roles[0]) : roles.map((r,i)=>`R${i+1} ${ROLES[r]||r}`).join(" · ");
 function renderTeacher(){
-  const tabs = `<div class="tabs" role="tablist">${[["evaluar","Evaluar"],["resultados","Resultados"]].map(([k,n])=>`<button type="button" class="chip" role="tab" data-ttab="${k}" aria-pressed="${teacher.tab===k}">${n}</button>`).join("")}</div>`;
+  const tabs = `<div class="tabs" role="tablist">${[...(window.MORERAS_STANDALONE?[["simulacion","Simulación"]]:[]),["evaluar","Evaluar"],["resultados","Resultados"]].map(([k,n])=>`<button type="button" class="chip" role="tab" data-ttab="${k}" aria-pressed="${teacher.tab===k}">${n}</button>`).join("")}</div>`;
   const note = store && store.kind==="local" ? `<div class="note">Los resultados se guardan en este navegador. Exporta a Excel de vez en cuando para tener copia.</div>` : "";
-  return `<div class="stack"><div><div class="eyebrow">Modo docente</div><h2>Evaluación individual</h2></div>${note}${tabs}${teacher.tab==="evaluar"?tEvaluar():tResultados()}${tReset()}</div>`;
+  return `<div class="stack"><div><div class="eyebrow">Modo docente</div><h2>${teacher.tab==="simulacion"?"Simulación":"Evaluación individual"}</h2></div>${note}${tabs}${teacher.tab==="simulacion"?tSimulacion():teacher.tab==="evaluar"?tEvaluar():tResultados()}${teacher.tab==="simulacion"||!window.MORERAS_STANDALONE?tReset():""}</div>`;
+}
+function tSimulacion(){
+  if(SYNC.on) return `<div class="card stack"><h3>Simulación sincronizada</h3><p>Este dispositivo está en la sesión <b style="font-size:1.4rem;letter-spacing:.12em">${esc(L.code)}</b>. En los demás dispositivos, elige <b>Modo simulación</b> y escribe este código.</p><div class="row"><button type="button" class="btn" id="goSim">Ir a la simulación</button></div></div>`;
+  if(L.solo) return `<div class="card stack"><h3>Simulación en este dispositivo</h3><p>La simulación está iniciada solo en este dispositivo, sin sincronizar.</p><div class="row"><button type="button" class="btn" id="goSim">Ir a la simulación</button></div></div>`;
+  return `<div class="card stack"><h3>¿Vais a sincronizar dispositivos?</h3>
+    <p>Por ejemplo, un móvil como comandero y un ordenador en barra y otro en cocina. Este dispositivo creará la sesión y te dará un código para conectar los demás. Necesitan internet.</p>
+    <div class="options"><button type="button" class="option" id="syncYes"><b>Sí, sincronizar dispositivos</b><br><span class="muted">Crear la sesión y conectar los demás con el código</span></button>
+    <button type="button" class="option" id="syncNo"><b>No, solo este dispositivo</b><br><span class="muted">Todo el servicio se hace en este TPV</span></button></div></div>`;
 }
 function tReset(){
   return `<div class="card stack" style="margin-top:24px;border-color:var(--bad)"><h3>Reiniciar la simulación</h3>
@@ -1007,6 +1016,7 @@ async function exportPdf(){
 
 /* ---------- Eventos del docente ---------- */
 async function teacherClick(t){
+  if(typeof syncClick==="function" && ["syncYes","syncNo","goSim"].includes(t.id)){ syncClick(t); return; }
   if(t.dataset.ttab){ teacher.tab=t.dataset.ttab; teacher.confirmDel=null; render(); return; }
   if(t.id==="useCode"){
     const s = readCode(teacher.paste);
@@ -1031,7 +1041,7 @@ async function teacherClick(t){
   if(t.dataset.del){ try{ await store.del("sesiones", t.dataset.del); toast("Servicio borrado"); }catch(e){ toast("No se ha podido borrar."); } teacher.confirmDel=null; render(); return; }
   if(t.id==="resetAllAsk"){ teacher.confirmReset=true; render(); $("#resetAllBox").scrollIntoView({block:"center"}); return; }
   if(t.id==="resetAllNo"){ teacher.confirmReset=false; render(); return; }
-  if(t.id==="resetAllYes"){ t.disabled=true; const ok=await resetAll(); teacher.confirmReset=false; if(ok){ mode="alumno"; askSync=true; render(); window.scrollTo({top:0}); toast("App reiniciada. Ya podéis empezar desde cero."); } else render(); return; }
+  if(t.id==="resetAllYes"){ t.disabled=true; const ok=await resetAll(); teacher.confirmReset=false; if(ok){ teacher.tab=window.MORERAS_STANDALONE?"simulacion":teacher.tab; render(); window.scrollTo({top:0}); toast("App reiniciada. Elige si vais a sincronizar dispositivos."); } else render(); return; }
   if(t.id==="expXlsx"){ exportXlsx(); return; }
   if(t.id==="expPdf"){ exportPdf(); return; }
   if(t.id==="backupDl"){ offer("Las_Moreras_copia_"+today()+".json", new Blob([JSON.stringify({app:"las-moreras", v:3, sesiones:teacher.sessions},null,1)],{type:"application/json"})); return; }
@@ -1131,11 +1141,17 @@ function loadLibs(){
   return libsP;
 }
 
+function unlockTeacher(){ try{ sessionStorage.setItem(UNLOCK, KEY_HASH); }catch(e){} const ms=$("#modeSwitch"); if(ms) ms.hidden=false; legal(); }
+function openTeacher(){
+  pendingKey=null;
+  if(isUnlocked()){ $("#modeSwitch").hidden=false; mode="docente"; loadLibs(); render(); window.scrollTo({top:0}); return; }
+  prevMode="alumno"; keyMsg=""; mode="clave"; render(); window.scrollTo({top:0}); setTimeout(()=>{ const i=$("#keyIn"); if(i) i.focus(); },0);
+}
 function renderExtra(){ if(mode==="licencia") return vLicencia(); if(mode==="clave") return vClave(); return null; }
 let prevMode = "alumno";
 function extraClick(t){
   if(t.id==="showLicense"){ pendingKey=null; if(mode!=="licencia") prevMode = mode==="clave" ? "alumno" : mode; mode="licencia"; render(); window.scrollTo({top:0}); return true; }
-  if(t.id==="teacherAccess"){ pendingKey=null; if(isUnlocked()){ $("#modeSwitch").hidden=false; mode="docente"; loadLibs(); } else { prevMode="alumno"; keyMsg=""; mode="clave"; } render(); window.scrollTo({top:0}); if(mode==="clave") setTimeout(()=>{ const i=$("#keyIn"); if(i) i.focus(); },0); return true; }
+  if(t.id==="teacherAccess"){ openTeacher(); return true; }
   if(t.id==="keyOk"){ tryKey(); return true; }
   if(t.id==="backFromExtra"){ if(pendingKey){ mode=pendingKey.back; pendingKey=null; keyMsg=""; render(); return true; } mode=prevMode; render(); window.scrollTo({top:0}); return true; }
   if(t.id==="lockTeacher"){ try{ sessionStorage.removeItem(UNLOCK); }catch(e){} $("#modeSwitch").hidden=true; mode="alumno"; legal(); render(); toast("Modo docente cerrado"); return true; }
