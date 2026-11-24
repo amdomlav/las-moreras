@@ -282,11 +282,11 @@ const ROLE_ORDER = ["sala","barra","cocina","clientes"];
 const autoRole = (gi, rot) => ROLE_ORDER[(gi + rot - 1) % 4];
 const PUESTOS_SERV = ["sala","barra","cocina"];
 const freshGroups = () => PUESTOS_SERV.map(k=>({id:k, name:ROLES[k], members:[], roles:{1:k}}));
-const FRESH = () => ({v:3, step:0, team:"", groups:freshGroups(), nRot:1, rot:1, caja:100, a:[], d:[],
+const FRESH = () => ({v:4, step:0, team:"", groups:freshGroups(), nRot:1, rot:1, caja:100, a:[], d:[],
   orders:[], nOrder:0, tickets:[], nTicket:0, cashErr:0, cardDenied:0,
   arqueo:null, fecha:today()});
 let S = Object.assign(FRESH(), load("moreras-tpv", {}));
-if(S.v!==3) S = FRESH();
+if(S.v!==4) S = FRESH();
 const persist = () => save("moreras-tpv", S);
 const blankDraft = mesa => ({mesa, lines:{}, notas:{}, obs:"", stage:"menu", asked:null, allergies:[]});
 let draft = blankDraft("Mesa 1");
@@ -709,8 +709,8 @@ setInterval(()=>{ if(mode==="alumno" && ["barra","cocina"].includes(STEPS[S.step
 
 /* ---------- Sincronización entre dispositivos (Firebase Realtime Database) ---------- */
 const FIREBASE_CONFIG = window.MORERAS_FIREBASE || null;
-let L = Object.assign({code:"", puesto:"todo"}, load("moreras-device", {}));
-const saveL = () => save("moreras-device", L);
+let L = Object.assign({code:"", puesto:"todo"}, load("moreras-device2", {}));
+const saveL = () => save("moreras-device2", L);
 const SYNC = {on:false, db:null, ref:null, status:"off", pendingRender:false};
 const PUESTOS = {todo:["Todo en este dispositivo","Servicio, preparación, sala, barra, cocina, caja y cierre"], sala:["Comandero de sala","Toma de comandas y caja"], barra:["TPV de barra","Notas de pedido de bebidas"], cocina:["TPV de cocina","Notas de pedido de comidas"]};
 const STEPS_BY_PUESTO = {todo:null, sala:["sala","caja"], barra:["barra"], cocina:["cocina"]};
@@ -745,9 +745,26 @@ function connect(code){
     SYNC.ref = SYNC.db.ref("s/"+code);
     SYNC.on = true; L.code = code; saveL();
     SYNC.db.ref(".info/connected").on("value", s=>{ SYNC.status = s.val() ? "ok" : "lost"; const b=$("#syncDot"); if(b) b.dataset.state=SYNC.status; });
-    SYNC.ref.on("value", snap=>applyRemote(snap.val()), err=>{ toast("No se puede leer la sesión: "+(err&&err.code||"error")); });
+    SYNC.seen = false; const myRef = SYNC.ref;
+    SYNC.ref.on("value", snap=>{ const v=snap.val();
+      if(v===null||!v.creado){
+        if(SYNC.seen){ wipeLocal(true); return; }
+        setTimeout(()=>{ if(SYNC.ref!==myRef || SYNC.seen) return; myRef.get().then(s=>{ if(SYNC.ref===myRef && !SYNC.seen && !s.exists()) wipeLocal(true); }).catch(()=>{}); }, 1500);
+        return; }
+      SYNC.seen = true; applyRemote(v); }, err=>{ toast("No se puede leer la sesión: "+(err&&err.code||"error")); });
     return true;
   }catch(e){ toast("No se ha podido conectar."); return false; }
+}
+/* Reinicio: borra el estado de la simulación de este dispositivo (no las evaluaciones del docente) */
+function wipeLocal(remote){
+  const was = SYNC.on;
+  disconnect(); S = FRESH(); draft = blankDraft("Mesa 1"); pay = null; persist();
+  if(mode!=="docente") render();
+  if(remote && was) toast("El docente ha reiniciado la simulación. Hay que volver a conectar este dispositivo.");
+}
+async function resetAll(){
+  if(SYNC.on && SYNC.ref){ try{ await SYNC.ref.remove(); }catch(e){ toast("No se ha podido reiniciar la sesión. Revisa internet."); return false; } }
+  wipeLocal(false); return true;
 }
 function disconnect(){ if(SYNC.ref) SYNC.ref.off(); SYNC.on=false; SYNC.ref=null; L.code=""; L.puesto="todo"; saveL(); }
 function newCode(){ const A="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let c=""; for(let i=0;i<5;i++) c+=A[Math.floor(Math.random()*A.length)]; return c; }
@@ -852,7 +869,14 @@ const puestoTxt = roles => roles.length===1 ? (ROLES[roles[0]]||roles[0]) : role
 function renderTeacher(){
   const tabs = `<div class="tabs" role="tablist">${[["evaluar","Evaluar"],["resultados","Resultados"]].map(([k,n])=>`<button type="button" class="chip" role="tab" data-ttab="${k}" aria-pressed="${teacher.tab===k}">${n}</button>`).join("")}</div>`;
   const note = store && store.kind==="local" ? `<div class="note">Los resultados se guardan en este navegador. Exporta a Excel de vez en cuando para tener copia.</div>` : "";
-  return `<div class="stack"><div><div class="eyebrow">Modo docente</div><h2>Evaluación individual</h2></div>${note}${tabs}${teacher.tab==="evaluar"?tEvaluar():tResultados()}</div>`;
+  return `<div class="stack"><div><div class="eyebrow">Modo docente</div><h2>Evaluación individual</h2></div>${note}${tabs}${teacher.tab==="evaluar"?tEvaluar():tResultados()}${tReset()}</div>`;
+}
+function tReset(){
+  return `<div class="card stack" style="margin-top:24px;border-color:var(--bad)"><h3>Reiniciar la simulación</h3>
+    <p class="muted">Deja la app como nueva para empezar desde cero${SYNC.on?` en este dispositivo y en todos los conectados a la sesión <b>${esc(L.code)}</b>`:" en este dispositivo"}. Las evaluaciones guardadas no se borran.</p>
+    <div id="resetAllBox" class="stack">${teacher.confirmReset?`<div class="note bad"><b>Atención: se perderán todos los datos de la simulación.</b> Se borrarán el servicio, los alumnos de cada puesto, las comandas, los tiques, la caja y el cierre${SYNC.on?" de todos los dispositivos conectados":""}. Todos volverán a la pantalla de inicio y habrá que empezar desde cero${SYNC.on?": crear una sesión nueva y volver a conectar cada dispositivo":""}. Esta acción no se puede deshacer.</div>
+      <div class="row"><button type="button" class="btn danger" id="resetAllYes">Sí, borrar todo y empezar de cero</button><button type="button" class="btn ghost" id="resetAllNo">Cancelar</button></div>`
+      :`<div class="row"><button type="button" class="btn danger" id="resetAllAsk">Reiniciar la app</button></div>`}</div></div>`;
 }
 function tEvaluar(){
   const paste = `<div class="card stack" style="border:2px dashed var(--brass);background:var(--brass-soft)">
@@ -982,6 +1006,9 @@ async function teacherClick(t){
   if(t.dataset.askdel){ teacher.confirmDel=t.dataset.askdel; render(); return; }
   if(t.hasAttribute("data-nodel")){ teacher.confirmDel=null; render(); return; }
   if(t.dataset.del){ try{ await store.del("sesiones", t.dataset.del); toast("Servicio borrado"); }catch(e){ toast("No se ha podido borrar."); } teacher.confirmDel=null; render(); return; }
+  if(t.id==="resetAllAsk"){ teacher.confirmReset=true; render(); $("#resetAllBox").scrollIntoView({block:"center"}); return; }
+  if(t.id==="resetAllNo"){ teacher.confirmReset=false; render(); return; }
+  if(t.id==="resetAllYes"){ t.disabled=true; const ok=await resetAll(); teacher.confirmReset=false; if(ok){ mode="alumno"; render(); window.scrollTo({top:0}); toast("App reiniciada. Ya podéis empezar desde cero."); } else render(); return; }
   if(t.id==="expXlsx"){ exportXlsx(); return; }
   if(t.id==="expPdf"){ exportPdf(); return; }
   if(t.id==="backupDl"){ offer("Las_Moreras_copia_"+today()+".json", new Blob([JSON.stringify({app:"las-moreras", v:3, sesiones:teacher.sessions},null,1)],{type:"application/json"})); return; }
