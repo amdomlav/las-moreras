@@ -1174,7 +1174,7 @@ document.addEventListener("keydown", ev=>{ if(ev.key==="Enter" && ev.target.id==
 function legal(){
   const f = $("#legal"); if(!f) return;
   const standalone = !!window.MORERAS_STANDALONE;
-  f.innerHTML = `<p>Versión Beta V0 (de prueba, puede contener errores y vulnerabilidades). © 2026 ${esc(TITULAR)}. Todos los derechos reservados. Licencia de uso gratuita y sin ánimo de lucro, exclusiva para la UMDF «Antonio Morales Recio» — Las Moreras (Monesterio). Prohibida su distribución o comercialización. Introducid solo nombre y apellidos del alumnado; el resto de datos deben ser ficticios.</p>
+  f.innerHTML = `<p>Versión Beta V0 · actualizada el 24/11 09:37 (de prueba, puede contener errores y vulnerabilidades). © 2026 ${esc(TITULAR)}. Todos los derechos reservados. Licencia de uso gratuita y sin ánimo de lucro, exclusiva para la UMDF «Antonio Morales Recio» — Las Moreras (Monesterio). Prohibida su distribución o comercialización. Introducid solo nombre y apellidos del alumnado; el resto de datos deben ser ficticios.</p>
     <div class="row"><button type="button" class="btn small ghost" id="showLicense">Ver la licencia</button>${standalone?(isUnlocked()?`<button type="button" class="btn small ghost" id="lockTeacher">Cerrar el modo docente</button>`:`<button type="button" class="btn small ghost" id="teacherAccess">Acceso docente</button>`):""}</div>`;
 }
 if(window.MORERAS_STANDALONE && isUnlocked()) $("#modeSwitch").hidden=false;
