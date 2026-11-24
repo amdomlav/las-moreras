@@ -917,7 +917,7 @@ function tSimulacion(){
 function tReset(){
   return `<div class="card stack" style="margin-top:24px;border-color:var(--bad)"><h3>Reiniciar la simulación</h3>
     <p class="muted">Deja la app como nueva para empezar desde cero${SYNC.on?` en este dispositivo y en todos los conectados a la sesión <b>${esc(L.code)}</b>`:" en este dispositivo"}. Las evaluaciones guardadas no se borran.</p>
-    <div id="resetAllBox" class="stack">${teacher.confirmReset?`<div class="note bad"><b>Atención: se perderán todos los datos de la simulación.</b> Se borrarán el servicio, los alumnos de cada puesto, las comandas, los tiques, la caja y el cierre${SYNC.on?" de todos los dispositivos conectados":""}. Todos volverán a la pantalla de inicio y habrá que empezar desde cero${SYNC.on?": crear una sesión nueva y volver a conectar cada dispositivo":""}. Esta acción no se puede deshacer.</div>
+    <div id="resetAllBox" class="stack">${teacher.confirmReset?`<div class="note bad"><b>Atención: se perderán todos los datos de la simulación.</b> Se borrarán el servicio, los alumnos de cada puesto, las comandas, los tiques, la caja y el cierre${SYNC.on?" de todos los dispositivos conectados":""}. Todos volverán a la pantalla de inicio y habrá que empezar desde cero${SYNC.on?": crear una sesión nueva y volver a conectar cada dispositivo":""}. Esta acción no se puede deshacer. Para confirmar se pedirá la clave del docente.</div>
       <div class="row"><button type="button" class="btn danger" id="resetAllYes">Sí, borrar todo y empezar de cero</button><button type="button" class="btn ghost" id="resetAllNo">Cancelar</button></div>`
       :`<div class="row"><button type="button" class="btn danger" id="resetAllAsk">Reiniciar la app</button></div>`}</div></div>`;
 }
@@ -1052,7 +1052,8 @@ async function teacherClick(t){
   if(t.dataset.del){ try{ await store.del("sesiones", t.dataset.del); toast("Servicio borrado"); }catch(e){ toast("No se ha podido borrar."); } teacher.confirmDel=null; render(); return; }
   if(t.id==="resetAllAsk"){ teacher.confirmReset=true; render(); $("#resetAllBox").scrollIntoView({block:"center"}); return; }
   if(t.id==="resetAllNo"){ teacher.confirmReset=false; render(); return; }
-  if(t.id==="resetAllYes"){ t.disabled=true; const ok=await resetAll(); teacher.confirmReset=false; if(ok){ teacher.tab=window.MORERAS_STANDALONE?"simulacion":teacher.tab; render(); window.scrollTo({top:0}); toast("App reiniciada. Elige si vais a sincronizar dispositivos."); } else render(); return; }
+  if(t.id==="resetAllYes"){ teacher.confirmReset=false; const run = async ()=>{ const ok=await resetAll(); if(ok){ mode="docente"; teacher.tab=window.MORERAS_STANDALONE?"simulacion":teacher.tab; render(); window.scrollTo({top:0}); toast("App reiniciada. Elige si vais a sincronizar dispositivos."); } else { mode="docente"; render(); } };
+    if(typeof askKey==="function") askKey("Reiniciar la app", run); else run(); return; }
   if(t.id==="expXlsx"){ exportXlsx(); return; }
   if(t.id==="expPdf"){ exportPdf(); return; }
   if(t.id==="backupDl"){ offer("Las_Moreras_copia_"+today()+".json", new Blob([JSON.stringify({app:"las-moreras", v:3, sesiones:teacher.sessions},null,1)],{type:"application/json"})); return; }
