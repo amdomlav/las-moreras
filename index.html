@@ -450,6 +450,7 @@ function receipt(tk){
     <hr><div style="text-align:center">Gracias por su visita</div></div>`;
 }
 function vCaja(){
+  if(pay && !openOrders(pay.mesa).length){ pay=null; setTimeout(()=>toast("Esta cuenta ya se ha cobrado en otro dispositivo. La mesa está libre."),0); }
   if(!pay){
     const busy = MESAS.filter(m=>openOrders(m).length);
     return `<div><div class="eyebrow">Fase C · Caja</div><h2>Facturación y cobro</h2></div>
@@ -656,12 +657,22 @@ function tpvClick(t){
     render(); return true;
   }
   if(t.id==="closeTicket"){
-    const orders = openOrders(pay.mesa), P = pay; t.disabled = true;
+    const P = pay;
+    // Datos frescos: otro dispositivo puede haber cobrado ya esta mesa
+    const orders = openOrders(P.mesa);
+    if(!orders.length){ pay=null; render(); toast("Esta cuenta ya está cobrada. La mesa está libre."); return true; }
+    const ids = orders.map(o=>o.id), lines = aggLines(orders);
+    // Primero se marca la mesa como cobrada, para que nadie pueda cobrarla otra vez
+    orders.forEach(o=>{ o.paid=true; share("order", o.id); });
+    pay=null; t.disabled = true;
     nextCounter("nTicket").then(n=>{
-    const tk = {id:uid(), num:`T${String(n).padStart(4,"0")}`, fecha:today(), hora:hhmm(Date.now()), mesa:P.mesa, tipo:P.tipo, cliente:P.cliente, lines:aggLines(orders), total:P.total, pagos:P.pagos, rot:S.rot};
-    S.tickets.push(tk); share("ticket", tk.id); orders.forEach(o=>{ o.paid=true; share("order", o.id); });
-    pay=null; render(); toast("Tique "+tk.num+" emitido. Mesa libre.");
-    }).catch(()=>{ t.disabled=false; toast("No se ha podido emitir el tique. Revisa la conexión."); });
+      const tk = {id:uid(), num:`T${String(n).padStart(4,"0")}`, fecha:today(), hora:hhmm(Date.now()), mesa:P.mesa, tipo:P.tipo, cliente:P.cliente, lines, total:P.total, pagos:P.pagos, rot:S.rot};
+      S.tickets.push(tk); share("ticket", tk.id);
+      // Por si la sincronización ha sustituido las comandas mientras tanto
+      S.orders.filter(o=>ids.includes(o.id) && !o.paid).forEach(o=>{ o.paid=true; share("order", o.id); });
+      render(); toast("Tique "+tk.num+" emitido. Mesa libre.");
+    }).catch(()=>{ S.orders.filter(o=>ids.includes(o.id)).forEach(o=>{ o.paid=false; share("order", o.id); }); pay=P; render(); toast("No se ha podido emitir el tique. Revisa la conexión y volved a intentarlo."); });
+    render();
     return true;
   }
   // Cierre
