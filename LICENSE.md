@@ -1,10 +1,10 @@
-# Licencia de uso · Simulador TPV «Las Moreras» (versión Beta V0)
+# Licencia de uso · TPV BETA V1 · Simulador «Las Moreras»
 
 © 2026 Ángel Manuel Domínguez Lavado. Todos los derechos reservados.
 
 ## 1. Titularidad
 
-El simulador TPV «Las Moreras» (su código, diseño, textos y contenidos) es una obra original de Ángel Manuel Domínguez Lavado, que se reserva todos los derechos de propiedad intelectual sobre ella. La ha desarrollado de forma voluntaria, sin percibir retribución y fuera de las funciones propias de su labor docente. Esta licencia no transmite la propiedad de la aplicación ni ningún derecho de explotación.
+El simulador TPV BETA V1 «Las Moreras», y su versión anterior Beta V0 (su código, diseño, textos y contenidos) es una obra original de Ángel Manuel Domínguez Lavado, que se reserva todos los derechos de propiedad intelectual sobre ella. La ha desarrollado de forma voluntaria, sin percibir retribución y fuera de las funciones propias de su labor docente. Esta licencia no transmite la propiedad de la aplicación ni ningún derecho de explotación.
 
 ## 2. Licencia de uso
 
@@ -26,11 +26,11 @@ Quien desee desarrollar una nueva versión o una versión profesional debe poner
 
 Cualquier distribución o comercialización no autorizada restringe de forma automática la licencia de uso. El titular se reserva el ejercicio de todas las acciones legales oportunas, incluida la reclamación de una indemnización económica por los daños y perjuicios causados, conforme al texto refundido de la Ley de Propiedad Intelectual (Real Decreto Legislativo 1/1996).
 
-## 7. Versión Beta V0 y seguridad
+## 7. Versión TPV BETA V1 y seguridad
 
-La aplicación es una versión Beta V0, de prueba, y se ofrece tal cual. No ha pasado ninguna auditoría de seguridad y puede contener errores y vulnerabilidades. Por ejemplo, la clave del modo docente es una protección básica y las sesiones con varios dispositivos usan una base de datos de prueba. El titular no garantiza su funcionamiento continuo ni su seguridad, y no responde de la pérdida, la alteración o el acceso no autorizado a los datos. Las evaluaciones se guardan en el navegador del dispositivo del docente, por lo que conviene descargar copias de seguridad.
+TPV BETA V1 es una versión de prueba y se ofrece tal cual. Sustituye a la Beta V0 para corregir sus problemas de seguridad: cada persona entra con su propio usuario y contraseña, el acceso se controla con roles (Administrador, docente y alumno) y las reglas de seguridad de la base de datos se comprueban en el servidor. Aun así, no ha pasado ninguna auditoría de seguridad externa y puede contener errores. El titular no garantiza su funcionamiento continuo ni su seguridad, y no responde de la pérdida, la alteración o el acceso no autorizado a los datos. Cada usuario es responsable de custodiar su contraseña y no compartirla.
 
 ## 8. Advertencia sobre datos personales y descargo de responsabilidad
 
-La aplicación no se ha desarrollado con fines de recopilación ni de tratamiento de datos personales o sensibles. El único dato personal que debe introducirse es el nombre y los apellidos del alumnado. No deben introducirse otros datos personales (DNI, teléfono, correo electrónico, domicilio, datos de salud u otros) ni en los nombres, ni en las observaciones de la evaluación, ni en los formularios de la simulación. Los datos de clientes, alergias y facturas de la simulación deben ser ficticios. Los nombres del alumnado se guardan en el navegador de los dispositivos y, cuando se usan varios dispositivos conectados, en la base de datos de la sesión. El centro es responsable del uso que haga de la aplicación y del cumplimiento de la normativa de protección de datos (RGPD y LOPDGDD). El titular declina toda responsabilidad derivada de la introducción de datos distintos de los indicados o de cualquier uso contrario a esta licencia.
+La aplicación no se ha desarrollado con fines de recopilación ni de tratamiento de datos personales o sensibles. El único dato personal que debe introducirse es el nombre y la inicial del primer apellido de cada usuario. No deben introducirse otros datos personales (DNI, teléfono, correo electrónico, domicilio, datos de salud u otros) ni en los nombres, ni en las observaciones de la evaluación, ni en los formularios de la simulación. Los datos de clientes, alergias y facturas de la simulación deben ser ficticios. Esos nombres, los servicios, las respuestas del cuestionario y las evaluaciones se guardan en la base de datos del proyecto (Google Firebase, Cloud Firestore). Las evaluaciones y las notas solo las puede ver el docente. El centro es responsable del uso que haga de la aplicación y del cumplimiento de la normativa de protección de datos (RGPD y LOPDGDD). El titular declina toda responsabilidad derivada de la introducción de datos distintos de los indicados o de cualquier uso contrario a esta licencia.
 

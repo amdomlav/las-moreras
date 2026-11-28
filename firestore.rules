@@ -1,0 +1,145 @@
+rules_version = '2';
+// TPV BETA V1 · Reglas de seguridad de Cloud Firestore
+// © 2026 Ángel Manuel Domínguez Lavado. Todos los derechos reservados.
+// Todo el control de acceso está aquí, en el servidor. La app no guarda claves.
+// Roles: admin (administra la app), docente (servicio y evaluación), alumno (su puesto y su cuestionario).
+service cloud.firestore {
+  match /databases/{db}/documents {
+
+    // ---- Quién es quién ----
+    function signed() { return request.auth != null; }
+    function perfilPath() { return /databases/$(db)/documents/usuarios/$(request.auth.uid); }
+    function me() { return get(perfilPath()).data; }
+    function activo() { return signed() && exists(perfilPath()) && me().activo == true; }
+    function admin() { return activo() && me().rol == 'admin'; }
+    function docente() { return activo() && me().rol == 'docente'; }
+    function alumno() { return activo() && me().rol == 'alumno'; }
+    // Primera cuenta de administración: se crea en la consola de Authentication con este usuario.
+    function adminInicial() { return signed() && request.auth.token.email == 'admin@tpv-beta-v1.local'; }
+    function texto(v, max) { return v is string && v.size() <= max; }
+    function lista(v, max) { return v is list && v.size() <= max; }
+
+    // ---- Usuarios: los crea y activa el Administrador ----
+    function perfilValido(d) {
+      return d.keys().hasOnly(['nombre', 'inicial', 'usuario', 'rol', 'activo', 'creadoEn'])
+        && texto(d.nombre, 40) && d.nombre.size() > 0 && texto(d.inicial, 3)
+        && texto(d.usuario, 40) && d.usuario.size() > 0
+        && d.rol in ['admin', 'docente', 'alumno'] && d.activo is bool;
+    }
+    match /usuarios/{uid} {
+      allow read: if (signed() && request.auth.uid == uid) || admin() || docente();
+      allow create: if perfilValido(request.resource.data) && (
+          admin()
+          // Solicitud de alta: la hace el propio usuario y queda inactiva hasta que el Administrador la activa
+          || (signed() && request.auth.uid == uid && request.resource.data.rol == 'alumno' && request.resource.data.activo == false)
+          || (adminInicial() && request.auth.uid == uid && request.resource.data.rol == 'admin' && request.resource.data.activo == true));
+      // El Administrador no puede desactivarse ni quitarse el rol a sí mismo
+      allow update: if admin() && perfilValido(request.resource.data)
+          && (uid != request.auth.uid || (request.resource.data.activo == true && request.resource.data.rol == 'admin'));
+      allow delete: if false;
+    }
+
+    // ---- Configuración: 'actual' apunta al servicio en curso (docente) ----
+    match /config/{id} {
+      allow read: if activo();
+      allow write: if (id == 'actual' && docente() && request.resource.data.keys().hasOnly(['servicio'])
+                        && texto(request.resource.data.servicio, 40))
+                   || (id != 'actual' && admin());
+    }
+
+    // ---- Batería de preguntas: la mantiene el Administrador, la consulta el docente ----
+    match /preguntas/{pid} {
+      allow read: if docente() || admin();
+      allow write: if admin() && request.resource.data.keys().hasOnly(['n', 'dif', 'tema', 't', 'ok', 'otras'])
+          && request.resource.data.n is int && request.resource.data.dif in ['mf', 'f', 'i', 'd']
+          && texto(request.resource.data.tema, 20) && texto(request.resource.data.t, 300) && request.resource.data.t.size() > 0
+          && texto(request.resource.data.ok, 150) && request.resource.data.ok.size() > 0
+          && lista(request.resource.data.otras, 3) && request.resource.data.otras.size() == 3;
+    }
+
+    // ---- Servicios ----
+    function servicioValido(d) {
+      return d.keys().hasOnly(['estado', 'team', 'fecha', 'caja', 'puestos', 'miembros', 'nombres', 'a', 'd', 'arqueo',
+                               'nOrder', 'nTicket', 'cashErr', 'cardDenied', 'cuestionario', 'm', 'creadoEn', 'cerradoEn'])
+        && d.estado in ['abierto', 'cerrado'] && texto(d.team, 60) && texto(d.fecha, 10)
+        && d.caja is number && lista(d.miembros, 30) && d.nombres is map
+        && lista(d.a, 30) && lista(d.d, 30) && d.nOrder is int && d.nTicket is int;
+    }
+    function svPath(sid) { return /databases/$(db)/documents/servicios/$(sid); }
+    function sv(sid) { return get(svPath(sid)).data; }
+    function miembro(sid) { return alumno() && request.auth.uid in sv(sid).miembros; }
+    function enServicio(sid) { return miembro(sid) && sv(sid).estado == 'abierto'; }
+
+    match /servicios/{sid} {
+      allow read: if docente() || (alumno() && request.auth.uid in resource.data.miembros);
+      allow create: if docente() && servicioValido(request.resource.data);
+      allow update: if (docente() && servicioValido(request.resource.data))
+        || (alumno() && request.auth.uid in resource.data.miembros && resource.data.estado == 'abierto'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['a', 'd', 'arqueo', 'nOrder', 'nTicket', 'cashErr', 'cardDenied'])
+            && request.resource.data.nOrder in [resource.data.nOrder, resource.data.nOrder + 1]
+            && request.resource.data.nTicket in [resource.data.nTicket, resource.data.nTicket + 1]
+            && lista(request.resource.data.a, 30) && lista(request.resource.data.d, 30));
+      allow delete: if false;
+
+      // Comandas: las crea sala; barra, cocina y sala cambian su estado
+      function comandaValida(d) {
+        return d.keys().hasOnly(['id', 'n', 'mesa', 't', 'rot', 'lines', 'obs', 'asked', 'allergies', 'risky', 'st', 'tm', 'paid', 'por'])
+          && d.n is int && texto(d.mesa, 20) && d.t is number && lista(d.lines, 40) && texto(d.obs, 300)
+          && lista(d.allergies, 14) && d.risky is bool && d.st is map && d.tm is map && d.paid is bool;
+      }
+      match /comandas/{cid} {
+        allow read: if docente() || miembro(sid);
+        allow create: if comandaValida(request.resource.data) && request.resource.data.id == cid
+          && (docente() || (enServicio(sid) && request.auth.uid in sv(sid).puestos.sala && request.resource.data.por == request.auth.uid));
+        allow update: if comandaValida(request.resource.data) && (docente() || enServicio(sid))
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['st', 'tm', 'paid']);
+        allow delete: if false;
+      }
+
+      // Tiques: los emite sala y no se cambian ni se borran
+      match /tiques/{tid} {
+        allow read: if docente() || miembro(sid);
+        allow create: if request.resource.data.keys().hasOnly(['id', 'num', 'fecha', 'hora', 'mesa', 'tipo', 'cliente', 'lines', 'total', 'pagos', 'rot', 'por'])
+          && request.resource.data.id == tid && texto(request.resource.data.num, 12) && request.resource.data.total is number
+          && request.resource.data.tipo in ['simplificada', 'completa'] && lista(request.resource.data.lines, 40) && lista(request.resource.data.pagos, 10)
+          && request.resource.data.cliente is map && texto(request.resource.data.cliente.get('nombre', ''), 80)
+          && texto(request.resource.data.cliente.get('nif', ''), 20) && texto(request.resource.data.cliente.get('dir', ''), 120)
+          && (docente() || (enServicio(sid) && request.auth.uid in sv(sid).puestos.sala && request.resource.data.por == request.auth.uid));
+        allow update, delete: if false;
+      }
+    }
+
+    // ---- Cuestionarios: el docente elige las preguntas; el alumno solo las ve mientras está activo ----
+    match /cuestionarios/{qid} {
+      allow read: if docente()
+        || (alumno() && resource.data.activo == true && request.auth.uid in sv(resource.data.servicio).miembros);
+      allow create, update: if docente() && request.resource.data.keys().hasOnly(['servicio', 'preguntas', 'activo', 'creadoEn'])
+        && texto(request.resource.data.servicio, 40) && lista(request.resource.data.preguntas, 10) && request.resource.data.activo is bool;
+      allow delete: if false;
+      // Respuestas correctas: solo el docente
+      match /privado/{doc} {
+        allow read, write: if docente();
+      }
+    }
+
+    // Respuestas del alumno: una sola entrega, no se cambia. La nota solo la calcula y la ve el docente.
+    match /respuestas/{rid} {
+      allow read: if docente() || (signed() && (resource == null || resource.data.uid == request.auth.uid));
+      allow create: if alumno()
+        && request.resource.data.keys().hasOnly(['uid', 'qid', 'servicio', 'resp', 'enviadoEn'])
+        && request.resource.data.uid == request.auth.uid
+        && rid == request.resource.data.qid + '_' + request.auth.uid
+        && request.resource.data.enviadoEn == request.time
+        && request.resource.data.resp is map && request.resource.data.resp.size() <= 10
+        && get(/databases/$(db)/documents/cuestionarios/$(request.resource.data.qid)).data.activo == true
+        && get(/databases/$(db)/documents/cuestionarios/$(request.resource.data.qid)).data.servicio == request.resource.data.servicio
+        && request.auth.uid in sv(request.resource.data.servicio).miembros;
+      allow update, delete: if false;
+    }
+
+    // ---- Evaluaciones: solo el docente ----
+    match /evaluaciones/{eid} {
+      allow read, write: if docente();
+    }
+  }
+}
